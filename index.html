@@ -1,0 +1,2727 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM-Datenanalyse — Online-Programmierschule Deutschland</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07101f;--bg2:#0b1828;--bg3:#10203a;--card:#0e1c30;--card2:#132238;
+  --b:rgba(80,160,255,.11);
+  --a:#3db8ff;--a2:#8b5cf6;--a3:#f59e0b;--g:#0fd47a;--r:#ff4466;--o:#fb923c;
+  --text:#dce8f5;--mu:#6b7fa3;--li:#a4b8d0;
+  --gb:rgba(15,212,122,.08);--gbd:rgba(15,212,122,.22);
+  --rb:rgba(255,68,102,.07);--rbd:rgba(255,68,102,.22);
+  --ab:rgba(245,158,11,.07);--abd:rgba(245,158,11,.2);
+  --bb:rgba(61,184,255,.07);--bbd:rgba(61,184,255,.2);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;line-height:1.6}
+
+/* ── PROGRESS ── */
+#prog{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--a),var(--a2));transition:width .4s;z-index:300}
+
+/* ── SIDEBAR ── */
+#sb{position:fixed;left:0;top:0;bottom:0;width:215px;background:var(--bg2);border-right:1px solid var(--b);display:flex;flex-direction:column;z-index:200;transform:translateX(-215px);transition:transform .3s}
+#sb.open{transform:none}
+.sbt{padding:16px 14px 12px;border-bottom:1px solid var(--b)}
+.sbt-logo{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--a);letter-spacing:2px}
+.sbt-sub{font-size:9px;color:var(--mu);margin-top:2px}
+.sbl{flex:1;overflow-y:auto;padding:6px 0}
+.sbl::-webkit-scrollbar{width:3px}
+.sbl::-webkit-scrollbar-thumb{background:var(--b)}
+.sb-grp{padding:8px 12px 3px;font-size:8px;font-family:'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--mu)}
+.sbi{display:flex;align-items:flex-start;gap:8px;padding:6px 12px;cursor:pointer;font-size:10.5px;color:var(--mu);transition:all .18s;border-left:2px solid transparent;line-height:1.35}
+.sbi:hover{color:var(--text);background:var(--bg3)}
+.sbi.on{color:var(--a);border-left-color:var(--a);background:rgba(61,184,255,.06)}
+.sbi-n{font-family:'JetBrains Mono',monospace;font-size:8px;opacity:.4;min-width:16px;flex-shrink:0;margin-top:2px}
+#tog{position:fixed;top:10px;left:10px;z-index:250;width:34px;height:34px;border-radius:8px;background:var(--card);border:1px solid var(--b);color:var(--a);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+#tog:hover{background:var(--a);color:var(--bg)}
+
+/* ── MAIN ── */
+#mn{position:fixed;inset:0;transition:left .3s}
+#mn.sh{left:215px}
+
+/* ── SLIDES ── */
+.slide{display:none;position:absolute;inset:0;overflow-y:auto;overflow-x:hidden}
+.slide::-webkit-scrollbar{width:4px}
+.slide::-webkit-scrollbar-thumb{background:var(--b);border-radius:2px}
+.slide.on{display:flex;flex-direction:column}
+.si{min-height:100%;padding:50px 54px 60px;display:flex;flex-direction:column}
+
+/* ── NAV ── */
+    #nav{position:fixed;bottom:4px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:3px;z-index:150;background:rgba(7,16,31,.88);backdrop-filter:blur(10px);padding:2px 5px;border-radius:999px;border:1px solid var(--b);opacity:0;transition:opacity .25s}
+    .nb{width:17px;height:17px;border-radius:50%;border:1px solid var(--b);background:none;color:var(--a);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .18s}
+.nb:hover{background:var(--a);color:var(--bg)}
+.nb:disabled{opacity:.2;cursor:default}
+.city-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--b);background:transparent;color:var(--mu);font-size:11px;cursor:pointer;transition:all .2s;font-family:Inter}
+.city-btn:hover{color:var(--text);border-color:var(--a)}
+.city-btn.on{background:rgba(61,184,255,.15);color:var(--a);border-color:var(--a)}
+    .ndots{display:flex;gap:3px;max-width:150px;flex-wrap:wrap;justify-content:center}
+    .dot{width:3px;height:3px;border-radius:50%;background:var(--mu);cursor:pointer;transition:all .2s;flex-shrink:0}
+    .dot.on{background:var(--a);width:7px;border-radius:2px}
+    #ctr{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--mu);min-width:20px;text-align:center}
+
+/* ── TYPOGRAPHY ── */
+.tag{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--a);margin-bottom:6px}
+.h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,4vw,54px);line-height:.95;margin-bottom:18px}
+.h1 span{color:var(--a)}
+.stl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--a);margin-bottom:8px;margin-top:14px}
+.stl:first-child{margin-top:0}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--b);border-radius:11px;padding:16px}
+.ct{border-top:2px solid var(--a)}.ct.p{border-top-color:var(--a2)}.ct.am{border-top-color:var(--a3)}.ct.g{border-top-color:var(--g)}.ct.r{border-top-color:var(--r)}
+.mtr-node{padding:5px 11px;border-radius:20px;font-size:10.5px;font-weight:600;white-space:nowrap;font-family:'JetBrains Mono',monospace;letter-spacing:.2px}
+.mtr-l1{background:rgba(139,92,246,.25);border:1.5px solid #8b5cf6;color:#c4b5fd;font-size:12.5px;padding:7px 22px}
+.mtr-l2a{background:rgba(255,100,100,.18);border:1px solid rgba(255,100,100,.5);color:#fca5a5}
+.mtr-l2b{background:rgba(15,212,122,.15);border:1px solid rgba(15,212,122,.4);color:#6ee7b7}
+.mtr-l3{background:rgba(61,184,255,.15);border:1px solid rgba(61,184,255,.4);color:#93c5fd;font-size:10px}
+.mtr-l4{background:rgba(180,180,170,.12);border:1px solid rgba(180,180,170,.35);color:#d3d1c7;font-size:9.5px}
+.mtr-conn{display:flex;align-items:center;justify-content:center;height:18px;margin:2px 0;gap:0;width:100%}
+.mtr-lvl-lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);font-family:'JetBrains Mono',monospace;margin:3px 0 6px;text-align:center}
+.mtr-line{width:1px;height:100%;background:linear-gradient(to bottom,transparent,rgba(255,100,100,.4),transparent)}
+[data-tip]{position:relative;cursor:help}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(7,16,31,.97);border:1px solid var(--a);border-radius:8px;padding:8px 12px;font-size:10.5px;color:var(--li);white-space:pre-wrap;max-width:230px;min-width:160px;z-index:500;line-height:1.6;text-align:left;pointer-events:none;font-weight:400;letter-spacing:0;text-transform:none}
+[data-tip]:hover::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--a);z-index:501;pointer-events:none}
+.chip-check{display:inline-flex;align-items:center;gap:5px;background:rgba(15,212,122,.1);border:1px solid rgba(15,212,122,.25);border-radius:6px;padding:4px 10px;font-size:10.5px;color:var(--g)}
+.chip-miss{display:inline-flex;align-items:center;gap:5px;background:rgba(255,165,0,.08);border:1px solid rgba(255,165,0,.25);border-radius:6px;padding:4px 10px;font-size:10.5px;color:#f59e0b}
+.trf-file{background:var(--bg2);border:1px solid var(--b);border-radius:8px;padding:11px 13px}
+.trf-tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+.trf-row{display:flex;gap:6px;align-items:baseline;margin-bottom:4px;font-size:10px;line-height:1.4}
+.trf-code{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--a3);background:rgba(61,184,255,.07);padding:1px 5px;border-radius:3px;white-space:nowrap}
+
+/* ── KPI ── */
+.kpi{background:var(--card);border:1px solid var(--b);border-radius:9px;padding:12px 15px}
+.kn{font-family:'Bebas Neue',sans-serif;font-size:clamp(22px,2.8vw,36px);color:var(--a);line-height:1}
+.kl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.tbl th{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--a);padding:7px 10px;border-bottom:1px solid var(--b);text-align:left}
+.tbl td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--li);vertical-align:top;line-height:1.5}
+.tbl tr:hover td{background:rgba(61,184,255,.03)}
+.tbl td:first-child{font-weight:600;color:var(--text)}
+
+/* ── PILLS ── */
+.pill{display:inline-block;padding:2px 7px;border-radius:999px;font-size:9px;font-family:'JetBrains Mono',monospace}
+.pg{background:var(--gb);color:var(--g);border:1px solid var(--gbd)}
+.py{background:var(--ab);color:var(--a3);border:1px solid var(--abd)}
+.pr{background:var(--rb);color:var(--r);border:1px solid var(--rbd)}
+.pb{background:var(--bb);color:var(--a);border:1px solid var(--bbd)}
+.pp{background:rgba(139,92,246,.14);color:var(--a2);border:1px solid rgba(139,92,246,.25)}
+
+/* ── BOXES ── */
+.box{border-radius:9px;padding:12px 16px;margin:10px 0;font-size:12px;line-height:1.65}
+.box-g{background:var(--gb);border:1px solid var(--gbd)}
+.box-r{background:var(--rb);border:1px solid var(--rbd)}
+.box-a{background:var(--ab);border:1px solid var(--abd)}
+.box-b{background:var(--bb);border:1px solid var(--bbd)}
+.box-g b,.box-g strong{color:var(--g)}
+.box-r b,.box-r strong{color:var(--r)}
+.box-a b,.box-a strong{color:var(--a3)}
+.box-b b,.box-b strong{color:var(--a)}
+
+/* ── PROGRESS BARS ── */
+.pb-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.pb-lbl{font-size:11px;color:var(--mu);width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pb-track{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.pb-fill{height:100%;border-radius:3px;transition:width 1.2s ease}
+.pb-val{font-size:10px;width:50px;flex-shrink:0;text-align:right;font-family:'JetBrains Mono',monospace}
+
+/* ── BEFORE/AFTER ── */
+.ba-wrap{display:grid;grid-template-columns:1fr 28px 1fr;align-items:stretch;gap:0;margin:10px 0}
+.ba-col{border-radius:8px;padding:12px 14px;font-size:11px}
+.ba-before{border:1px solid var(--rbd);background:var(--rb)}
+.ba-after{border:1px solid var(--gbd);background:var(--gb)}
+.ba-arr{display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--mu)}
+.ba-label{font-size:8px;font-family:'JetBrains Mono',monospace;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
+.ba-before .ba-label{color:var(--r)}
+.ba-after .ba-label{color:var(--g)}
+.ba-val{font-family:'JetBrains Mono',monospace;line-height:1.6}
+.ba-before .ba-val{color:var(--r)}
+.ba-after .ba-val{color:var(--g)}
+
+/* ── BARS ── */
+.br{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bl{font-size:11px;color:var(--mu);width:120px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bt{flex:1;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.bf{height:100%;border-radius:4px;background:var(--a);transition:width 1s ease}
+.bv{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--a);width:60px;flex-shrink:0}
+
+/* ── FUNNEL ── */
+.fun{display:flex;flex-direction:column;align-items:center;gap:2px}
+.fun-s{display:flex;align-items:center;justify-content:space-between;padding:9px 18px;border-radius:5px;color:#fff;font-size:12px;font-weight:500;cursor:default;transition:filter .2s;flex-wrap: wrap;}
+.fun-s:hover{filter:brightness(1.12)}
+
+/* ── CHART WRAP ── */
+.cw{position:relative;flex:1;min-height:0}
+
+/* ── CONTROLS ── */
+.ctrl{background:var(--bg3);border:1px solid var(--b);border-radius:10px;padding:14px;margin-bottom:12px}
+.ctrl-title{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--a3);margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.ctrl-title::before{content:'⚙';font-size:12px}
+.ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ctrl-lbl{font-size:11px;color:var(--li);min-width:145px;flex-shrink:0}
+.ctrl-slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--bg2);outline:none;cursor:pointer}
+.ctrl-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--a);cursor:pointer;border:2px solid var(--bg)}
+.ctrl-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--a);min-width:48px;text-align:right}
+.res-box{background:var(--gb);border:1px solid var(--gbd);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.res-item{text-align:center}
+.res-n{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--g);line-height:1}
+.res-l{font-size:8px;color:var(--mu);text-transform:uppercase;letter-spacing:1px}
+
+/* ── COVER SLIDE ── */
+#s0{background:#000}
+.cover-inner{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 60px;position:relative;overflow:hidden}
+.cover-inner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(180,140,0,.06) 0%,transparent 70%)}
+.cover-title-main{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,9vw,120px);color:#f5c400;line-height:.9;letter-spacing:4px;text-shadow:0 0 60px rgba(245,196,0,.25);margin-bottom:16px}
+.cover-title-main .italic{font-style:italic;font-size:clamp(48px,8.5vw,112px)}
+.cover-sub-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,4.5vw,60px);color:#f5c400;letter-spacing:3px;opacity:.85;line-height:1.1;margin-bottom:48px}
+.cover-line{width:120px;height:2px;background:linear-gradient(90deg,transparent,#f5c400,transparent);margin:0 auto 36px}
+.cover-stats{display:flex;gap:36px;justify-content:center;flex-wrap:wrap}
+.cs{padding:14px 22px;border:1px solid rgba(245,196,0,.2);border-radius:8px;background:rgba(245,196,0,.04);text-align:center}
+.cn{font-family:'Bebas Neue',sans-serif;font-size:34px;color:#f5c400;line-height:1}
+.cl{font-size:9px;color:rgba(245,196,0,.55);text-transform:uppercase;letter-spacing:2px;margin-top:3px}
+.cover-author{margin-top:40px;font-size:12px;color:rgba(245,196,0,.4);letter-spacing:2px;text-transform:uppercase}
+
+/* ── COVER DOTS ── */
+.cover-dot{position:absolute;border-radius:50%;border:1px solid rgba(245,196,0,.08);pointer-events:none}
+
+/* ── CLEANING TABS ── */
+.tab-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tab-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--b);background:transparent;color:var(--mu);font-size:11px;cursor:pointer;transition:all .2s;font-family:Inter}
+.tab-btn:hover{color:var(--text);border-color:var(--a)}
+.tab-btn.on{background:rgba(61,184,255,.12);color:var(--a);border-color:var(--a)}
+.tab-content{display:none}
+.tab-content.on{display:block}
+
+/* ── REQUIREMENT CHECK ── */
+.req-item{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.req-icon{flex-shrink:0;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;margin-top:1px}
+.req-text{font-size:12px;color:var(--li);line-height:1.5}
+.req-text b{color:var(--text)}
+
+@keyframes coverAnim{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.cau{animation:coverAnim .8s ease forwards;opacity:0}
+.cau1{animation-delay:.1s}.cau2{animation-delay:.3s}.cau3{animation-delay:.5s}.cau4{animation-delay:.7s}.cau5{animation-delay:.9s}
+
+.map-tooltip{background:rgba(14,28,48,.95)!important;border:1px solid rgba(61,184,255,.3)!important;color:#dce8f5!important;font-family:Inter;font-size:12px!important;border-radius:8px!important;padding:8px 12px!important;box-shadow:0 4px 20px rgba(0,0,0,.4)!important}
+.map-tooltip::before{display:none!important}
+.leaflet-control-attribution{display:none}
+
+/* ── Geo map ── */
+.map-tooltip{background:rgba(7,16,31,.96)!important;border:1px solid rgba(61,184,255,.35)!important;color:#dce8f5!important;font-family:Inter;font-size:12px!important;border-radius:9px!important;padding:9px 13px!important;box-shadow:0 4px 24px rgba(0,0,0,.5)!important;line-height:1.6!important}
+.map-tooltip::before{display:none!important}
+.leaflet-container{background:#0b1828}
+@keyframes pulse{0%{transform:scale(1);opacity:.8}70%{transform:scale(2.2);opacity:0}100%{transform:scale(2.2);opacity:0}}
+.pulse-ring{position:absolute;border-radius:50%;animation:pulse 2s ease-out infinite;pointer-events:none}
+#layerBtns button{transition:all .2s}
+
+.city-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--b);background:transparent;color:var(--mu);font-size:11px;cursor:pointer;font-family:Inter;transition:all .2s}
+.city-btn:hover{color:var(--text);border-color:var(--a)}
+.city-btn.on{background:rgba(61,184,255,.14);color:var(--a);border-color:var(--a)}
+#nav:hover{opacity:1}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+
+<!-- SIDEBAR -->
+<div id="sb">
+  <div class="sbt"><div class="sbt-logo">CRM Analytics</div><div class="sbt-sub">Serhiy Hromyko · 2026</div></div>
+  <div class="sbl" id="sbl"></div>
+</div>
+<button id="tog">☰</button>
+<div id="mn">
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- S0: TITLE SLIDE -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide on" id="s0" style="overflow:hidden">
+  <div class="cover-inner">
+    <!-- decorative circles -->
+    <div class="cover-dot" style="width:600px;height:600px;top:-200px;left:-200px"></div>
+    <div class="cover-dot" style="width:400px;height:400px;bottom:-150px;right:-100px"></div>
+
+    <div class="cover-title-main cau cau1">
+      CRM-<span class="italic">DATENANALYSE</span>
+    </div>
+    <div class="cover-sub-title cau cau2">
+      FÜR DIE EFFIZIENZSTEIGERUNG<br>DER ONLINE-SCHULE
+    </div>
+    <div class="cover-line cau cau3"></div>
+    <div class="cover-stats cau cau4">
+      <div class="cs"><div class="cn">18 510</div><div class="cl">Kontakte</div></div>
+      <div class="cs"><div class="cn">92 387</div><div class="cl">Anrufe</div></div>
+      <div class="cs"><div class="cn">8 139</div><div class="cl">Deals im CRM</div></div>
+      <div class="cs"><div class="cn">€3.80M</div><div class="cl">Umsatz</div></div>
+      <div class="cs"><div class="cn">12 Mon.</div><div class="cl">Datenzeitraum</div></div>
+    </div>
+    <div class="cover-author cau cau5">Serhiy Hromyko &nbsp;·&nbsp; Juni 2026 &nbsp;·&nbsp; Daten: Juli 2023 — Juni 2024</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- S_TOC: INHALTSVERZEICHNIS -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="stoc">
+<div class="si" style="padding-top:40px">
+  <div class="tag">00 / Projektübersicht</div>
+  <div class="h1">Was <span>wo</span> finden</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px">
+    <div class="card ct" style="padding:14px">
+      <div class="stl">Daten &amp; Analyse</div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-top:6px;font-size:12px">
+        <div onclick="goTo(2)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(61,184,255,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--a);font-size:10px;min-width:28px">01</span>
+          <span style="color:var(--li)">Datenbereinigung &amp; -vorbereitung</span>
+        </div>
+        <div onclick="goTo(3)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(61,184,255,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--a);font-size:10px;min-width:28px">02</span>
+          <span style="color:var(--li)">Metrik-Baum des Projekts</span>
+        </div>
+        <div onclick="goTo(4)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(61,184,255,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--a);font-size:10px;min-width:28px">03</span>
+          <span style="color:var(--li)">Wichtigste Kennzahlen (KPI)</span>
+        </div>
+        <div onclick="goTo(5)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(61,184,255,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--a);font-size:10px;min-width:28px">04</span>
+          <span style="color:var(--li)">Konversionstrichter</span>
+        </div>
+        <div onclick="goTo(6)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(61,184,255,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--a);font-size:10px;min-width:28px">05</span>
+          <span style="color:var(--li)">Akquisitionskanäle &amp; ROMI</span>
+        </div>
+        <div onclick="goTo(7)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(61,184,255,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--a);font-size:10px;min-width:28px">06</span>
+          <span style="color:var(--li)">Unit-Ökonomie nach Produkten</span>
+        </div>
+        <div onclick="goTo(8)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(61,184,255,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--a);font-size:10px;min-width:28px">07</span>
+          <span style="color:var(--li)">Manager- &amp; Kampagneneffizienz</span>
+        </div>
+      </div>
+    </div>
+    <div class="card ct p" style="padding:14px">
+      <div class="stl">Produktanalytik</div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-top:6px;font-size:12px">
+        <div onclick="goTo(9)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(139,92,246,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--a2);font-size:10px;min-width:28px">08</span>
+          <span style="color:var(--li)">Reaktionsgeschwindigkeit &amp; SLA</span>
+        </div>
+        <div onclick="goTo(10)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(139,92,246,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--a2);font-size:10px;min-width:28px">09</span>
+          <span style="color:var(--li)">Manager &amp; monatliche Dynamik</span>
+        </div>
+        <div onclick="goTo(11)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(139,92,246,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--a2);font-size:10px;min-width:28px">10</span>
+          <span style="color:var(--li)">Städte Deutschlands &amp; Sprachniveau</span>
+        </div>
+        <div onclick="goTo(12)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(245,158,11,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--a3);font-size:10px;min-width:28px">11</span>
+          <span style="color:var(--li)">Wachstumshypothesen</span>
+        </div>
+        <div onclick="goTo(13)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(255,68,102,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--r);font-size:10px;min-width:28px">12</span>
+          <span style="color:var(--li)">A/B-Testergebnisse ★</span>
+        </div>
+        <div onclick="goTo(14)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(245,158,11,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--a3);font-size:10px;min-width:28px">13</span>
+          <span style="color:var(--li)">Physikalische Marktgrenze</span>
+        </div>
+        <div onclick="goTo(15)" style="cursor:pointer;display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--bg3);border-radius:7px;transition:background .2s" onmouseover="this.style.background='rgba(15,212,122,.1)'" onmouseout="this.style.background='var(--bg3)'">
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--g);font-size:10px;min-width:28px">14</span>
+          <span style="color:var(--li)">Empfehlungen &amp; Aktionsplan</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;background:rgba(61,184,255,.06);border:1px solid rgba(61,184,255,.15);border-radius:10px;padding:10px 16px;font-size:11px;color:var(--mu);text-align:center">
+    Klicken Sie auf einen Eintrag — springt zur Folie &nbsp;·&nbsp; Datenzeitraum: Juli 2023 — Juni 2024 &nbsp;·&nbsp; 17 Folien · 4 Dateien · 136K Zeilen
+  </div>
+</div>
+</div>
+
+<!-- S1: DATENBEREINIGUNG — ÜBERSICHT -->
+<!-- ════════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════════════ -->
+<!-- S1: DATENBEREINIGUNG — ÜBERSICHT -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s1">
+  <div class="si" style="padding-top:40px">
+    <div class="tag">01 / Datenvorbereitung</div>
+    <div class="h1">Daten<span>bereinigung</span> &amp; -vorbereitung</div>
+
+    <!-- GRID: TABELLE + BESCHREIBUNG -->
+    <div class="g2" style="gap: 20px; align-items: start; margin-bottom: 20px;">
+      
+      <!-- LINKE SPALTE: STATISTIKTABELLE -->
+      <div class="card" style="padding: 15px; border: 1px solid var(--b); background: var(--card);">
+<div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--a);margin-bottom:10px">Bereinigungsergebnisse</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <thead>
+            <tr style="border-bottom:1px solid var(--b)">
+              <th style="padding:7px 10px;text-align:left;color:var(--a);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase">Datei</th>
+              <th style="padding:7px 10px;text-align:right;color:var(--a);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase">Zeilen vorher</th>
+              <th style="padding:7px 10px;text-align:right;color:var(--a);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase">Zeilen nachher</th>
+              <th style="padding:7px 10px;text-align:right;color:var(--a);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase">Entfernte Zeilen</th>
+              <th style="padding:7px 10px;text-align:center;color:var(--a);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase">Entfernt %</th>
+              <th style="padding:7px 10px;text-align:left;color:var(--a);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase">Transformationen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(61,184,255,.04)'" onmouseout="this.style.background=''">
+              <td style="padding:8px 10px;font-weight:700;color:var(--text)">Calls.xlsx</td>
+              <td style="padding:8px 10px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--li)">95&nbsp;874</td>
+              <td style="padding:8px 10px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--g);font-weight:600">92&nbsp;387</td>
+              <td style="padding:8px 10px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--r);font-weight:600">3&nbsp;487</td>
+              <td style="padding:8px 10px;text-align:center"><span style="background:rgba(255,68,102,.14);color:var(--r);border:1px solid rgba(15,212,122,.3);border-radius:999px;padding:2px 7px;font-family:'JetBrains Mono',monospace;font-size:9px">−3.6%</span></td>
+              <td style="padding:8px 10px;font-size:10.5px;color:var(--li)">Datum EU→ISO · NaN Duration→0 · True/False→1/0 · leere Felder Tag, Dialled Number entfernt</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(61,184,255,.04)'" onmouseout="this.style.background=''">
+              <td style="padding:8px 10px;font-weight:700;color:var(--text)">Contacts.xlsx</td>
+              <td style="padding:8px 10px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--li)">18&nbsp;548</td>
+              <td style="padding:8px 10px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--g);font-weight:600">18&nbsp;510</td>
+              <td style="padding:8px 10px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--r);font-weight:600">38</td>
+              <td style="padding:8px 10px;text-align:center"><span style="background:rgba(255,68,102,.14);color:var(--r);border:1px solid rgba(15,212,122,.3);border-radius:999px;padding:2px 7px;font-family:'JetBrains Mono',monospace;font-size:9px">−0.2%</span></td>
+              <td style="padding:8px 10px;font-size:10.5px;color:var(--li)">Id: Zahl→String (verhindert 5,8E+18) · Datum EU→ISO 8601</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(61,184,255,.04)'" onmouseout="this.style.background=''">
+              <td style="padding:8px 10px;font-weight:700;color:var(--text)">Deals.xlsx</td>
+              <td style="padding:8px 10px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--li)">21&nbsp;595</td>
+              <td style="padding:8px 10px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--g);font-weight:600">18&nbsp;278</td>
+              <td style="padding:8px 10px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--r);font-weight:600">3&nbsp;317</td>
+              <td style="padding:8px 10px;text-align:center"><span style="background:rgba(255,68,102,.14);color:var(--r);border:1px solid rgba(15,212,122,.3);border-radius:999px;padding:2px 7px;font-family:'JetBrains Mono',monospace;font-size:9px">−15.4%</span></td>
+              <td style="padding:8px 10px;font-size:10.5px;color:var(--li)">«€ 3.500,00»→Float · NaN→0/Unknown/None · Datum EU→ISO</td>
+            </tr>
+            <tr onmouseover="this.style.background='rgba(255,68,102,.04)'" onmouseout="this.style.background=''">
+              <td style="padding:8px 10px;font-weight:700;color:var(--text)">Spend.xlsx</td>
+              <td style="padding:8px 10px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--li)">20 779</td>
+              <td style="padding:8px 10px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--g);font-weight:600">19 862</td>
+              <td style="padding:8px 10px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--r);font-weight:600">917</td>
+              <td style="padding:8px 10px;text-align:center"><span style="background:rgba(255,68,102,.14);color:var(--r);border:1px solid rgba(255,68,102,.3);border-radius:999px;padding:2px 7px;font-family:'JetBrains Mono',monospace;font-size:9px">4.4%</span></td>
+              <td style="padding:8px 10px;font-size:10.5px;color:var(--li)"><b style="color:var(--r)">−917 Duplikate</b> (Doppelexport) · Datum datetime→date · Source: .strip() Leerzeichen</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:10px;font-size:10px;color:var(--mu);background:rgba(61,184,255,.05);border:1px solid rgba(61,184,255,.15);border-radius:7px;padding:8px 12px">
+          ℹ Calls, Contacts, Deals: Duplikate und fehlerhafte Zeilen entfernt. 
+          Bereinigung betraf <b style="color:var(--a)">Datenformate, Typen und fehlende Werte</b>. 
+          Calls −3.487 (3,6%) · Contacts −38 (0,2%) · Deals −3.317 (15,4%) · Spend −917 (4,4%).
+        </div>
+      </div>
+
+      <!-- RECHTE SPALTE: FELDVOLLSTÄNDIGKEIT -->
+      <div class="card" style="padding: 15px; border: 1px solid var(--b); background: var(--card);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--r);margin-bottom:10px">⚠ Vollständigkeit der Schlüsselfelder in Deals.xlsx</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:11px">
+          <!-- each row: field name, fill bar, pct -->
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:var(--li)">Quality</span><span style="font-family:'JetBrains Mono',monospace;color:var(--g)">87.7%</span></div>
+            <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:87.7%;height:100%;background:var(--g);border-radius:3px"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:var(--li)">Campaign</span><span style="font-family:'JetBrains Mono',monospace;color:#f59e0b">75.7%</span></div>
+            <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:75.7%;height:100%;background:#f59e0b;border-radius:3px"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:var(--li)">SLA</span><span style="font-family:'JetBrains Mono',monospace;color:#f59e0b">75.5%</span></div>
+            <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:75.5%;height:100%;background:#f59e0b;border-radius:3px"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:var(--li)">Lost Reason</span><span style="font-family:'JetBrains Mono',monospace;color:#f59e0b">70.2%</span></div>
+            <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:70.2%;height:100%;background:#f59e0b;border-radius:3px"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:var(--li)">Closing Date</span><span style="font-family:'JetBrains Mono',monospace;color:#f59e0b">62.0%</span></div>
+            <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:62.0%;height:100%;background:#f59e0b;border-radius:3px"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:var(--li)">Level of Deutsch</span><span style="font-family:'JetBrains Mono',monospace;color:var(--r)">6.7%</span></div>
+            <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:6.7%;height:100%;background:var(--r);border-radius:3px"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:var(--li)">Payment Type</span><span style="font-family:'JetBrains Mono',monospace;color:var(--r)">2.6%</span></div>
+            <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:2.6%;height:100%;background:var(--r);border-radius:3px"></div></div>
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:10px;background:rgba(255,68,102,.07);border:1px solid rgba(255,68,102,.25);border-radius:6px;padding:7px 10px;color:var(--li)">
+          💡 <b style="color:var(--r)">Empfehlung an CRM-Manager:</b> Payment Type (2,6%) und Level of Deutsch (6,7%) unbedingt ausfüllen — die extrem niedrige Vollständigkeit erschwert die Analyse von Zahlungsarten und Sprachsegmenten. City, Product, Stage, Initial Amount Paid, Is_Paid — zu 100% ausgefüllt.
+        </div>
+      </div>
+    </div>
+
+    <!-- ETL PIPELINE TABLE -->
+    <!-- TRANSFORMATIONSDETAILS NACH DATEI -->
+    <div class="card" style="padding:14px;margin-bottom:14px;border:1px solid var(--b)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--a2);margin-bottom:12px">✔ Transformationsdetails — alle 4 Dateien tatsächlich verarbeitet</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+
+        <!-- CALLS -->
+        <div class="trf-file">
+          <div class="trf-tag" style="background:rgba(61,184,255,.15);color:var(--a)">📞 Calls.xlsx</div>
+          <div class="trf-row"><span style="color:var(--li)">Id, CONTACTID</span><span class="trf-code">dtype=str</span></div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;padding-left:2px">→ verhindert 5,8E+18</div>
+          <div class="trf-row"><span style="color:var(--li)">Call Start Time</span><span class="trf-code">to_datetime(dayfirst=True)</span></div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;padding-left:2px">→ EU→ISO 8601</div>
+          <div class="trf-row"><span style="color:var(--li)">Duration NaN</span><span class="trf-code">fillna(0).astype(int)</span></div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;padding-left:2px">→ 0 statt Leerwerte</div>
+          <div class="trf-row"><span style="color:var(--li)">Call Status NaN</span><span class="trf-code">fillna('Not Answered')</span></div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;padding-left:2px">→ fehlende Anrufe erhalten</div>
+          <div class="trf-row"><span style="color:var(--li)">Call Type NaN</span><span class="trf-code">fillna('Unknown')</span></div>
+          <div class="trf-row"><span style="color:var(--li)">'FALSCH'/'False'</span><span class="trf-code">replace({→0})</span></div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;padding-left:2px">→ Boolesche Werte vereinheitlicht</div>
+          <div class="trf-row"><span style="color:var(--li)">drop_duplicates()</span><span style="color:var(--g);font-size:9px;font-weight:600">0 entfernt</span></div>
+        </div>
+
+        <!-- CONTACTS -->
+        <div class="trf-file">
+          <div class="trf-tag" style="background:rgba(139,92,246,.15);color:var(--a2)">👤 Contacts.xlsx</div>
+          <div class="trf-row"><span style="color:var(--li)">Id</span><span class="trf-code">dtype={'Id':str}</span></div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;padding-left:2px">→ JOIN ohne Datenverlust</div>
+          <div class="trf-row"><span style="color:var(--li)">Created Time</span><span class="trf-code">to_datetime(dayfirst=True)</span></div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;padding-left:2px">→ EU→ISO 8601</div>
+          <div class="trf-row"><span style="color:var(--li)">Modified Time</span><span class="trf-code">to_datetime(dayfirst=True)</span></div>
+          <div class="trf-row"><span style="color:var(--li)">Owner NaN</span><span class="trf-code">fillna('Unknown')</span></div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;padding-left:2px">→ keine leeren Besitzer</div>
+          <div class="trf-row"><span style="color:var(--li)">drop_duplicates()</span><span style="color:var(--g);font-size:9px;font-weight:600">0 entfernt</span></div>
+          <div style="margin-top:10px;font-size:9px;color:var(--mu);border-top:1px solid var(--b);padding-top:7px">18.510 Zeilen · 38 Duplikate entfernt<br>ID korrekt als String</div>
+        </div>
+
+        <!-- DEALS -->
+        <div class="trf-file">
+          <div class="trf-tag" style="background:rgba(245,158,11,.12);color:#f59e0b">💼 Deals.xlsx</div>
+          <div class="trf-row"><span style="color:var(--li)">Id, Contact Name</span><span class="trf-code">dtype=str</span></div>
+          <div class="trf-row"><span style="color:var(--li)">Created Time</span><span class="trf-code">to_datetime(dayfirst=True)</span></div>
+          <div class="trf-row"><span style="color:var(--li)">Closing Date</span><span class="trf-code">to_datetime(dayfirst=True)</span></div>
+          <div class="trf-row"><span style="color:var(--li)">Geld (Text)</span><span class="trf-code">to_numeric().fillna(0)</span></div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;padding-left:2px">→ €-Strings → Float</div>
+          <div class="trf-row"><span style="color:var(--li)">Lost Reason NaN</span><span class="trf-code">fillna('None')</span></div>
+          <div class="trf-row"><span style="color:var(--li)">Stage NaN</span><span class="trf-code">fillna('Unknown')</span></div>
+          <div class="trf-row"><span style="color:var(--li)">Product NaN</span><span class="trf-code">fillna('Not Specified')</span></div>
+          <div class="trf-row"><span style="color:var(--li)">City NaN</span><span class="trf-code">fillna('Unknown')</span></div>
+          <div class="trf-row"><span style="color:var(--li)">drop_duplicates()</span><span style="color:var(--g);font-size:9px;font-weight:600">0 entfernt</span></div>
+        </div>
+
+        <!-- SPEND -->
+        <div class="trf-file" style="border-color:rgba(255,68,102,.3)">
+          <div class="trf-tag" style="background:rgba(255,68,102,.15);color:var(--r)">💰 Spend.xlsx</div>
+          <div class="trf-row"><span style="color:var(--li)">Date</span><span class="trf-code">to_datetime(dayfirst=True)</span></div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;padding-left:2px">→ EU→ISO 8601</div>
+          <div class="trf-row"><span style="color:var(--li)">Impressions</span><span class="trf-code">to_numeric().fillna(0)</span></div>
+          <div class="trf-row"><span style="color:var(--li)">Clicks</span><span class="trf-code">to_numeric().fillna(0)</span></div>
+          <div class="trf-row"><span style="color:var(--li)">Spend</span><span class="trf-code">to_numeric().fillna(0)</span></div>
+          <div class="trf-row"><span style="color:var(--li)">Source NaN</span><span class="trf-code">fillna('Unknown')</span></div>
+          <div class="trf-row"><span style="color:var(--li)">Source Leerzeichen</span><span class="trf-code">.str.strip()</span></div>
+          <div style="font-size:9px;color:var(--mu);margin-bottom:3px;padding-left:2px">→ 'Google Ads '='Google Ads'</div>
+          <div class="trf-row"><span style="color:var(--li)">Campaign NaN</span><span class="trf-code">fillna('Unknown')</span></div>
+          <div class="trf-row"><span style="color:var(--li)">drop_duplicates()</span><span style="color:var(--r);font-size:9px;font-weight:700">−917 Zeilen (4,41%)</span></div>
+          <div style="margin-top:7px;font-size:9px;color:var(--r);border-top:1px solid rgba(255,68,102,.2);padding-top:6px">Einzige Datei mit Duplikaten — Doppelexport der Werbeplattform</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ETL PIPELINE TABLE -->
+    <div class="card" style="padding:16px;margin-bottom:14px;border:1px solid var(--b)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--a);margin-bottom:10px">ETL-Pipeline — Datenvorbereitung</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10.5px">
+        <thead>
+          <tr style="border-bottom:1px solid var(--b)">
+            <th style="padding:6px 10px;text-align:left;color:var(--a);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap">Objekt</th>
+            <th style="padding:6px 10px;text-align:left;color:var(--a);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;text-transform:uppercase">Action</th>
+            <th style="padding:6px 10px;text-align:left;color:var(--a);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;text-transform:uppercase">Methode</th>
+            <th style="padding:6px 10px;text-align:left;color:var(--a);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;text-transform:uppercase">Zweck (Business Logic)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(61,184,255,.04)'" onmouseout="this.style.background=''">
+            <td style="padding:6px 10px;color:var(--text);font-weight:600;white-space:nowrap">Alle Tabellen</td>
+            <td style="padding:6px 10px;color:var(--li)">Spaltenbereinigung</td>
+            <td style="padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">.columns.str.strip()</td>
+            <td style="padding:6px 10px;color:var(--li)">Unsichtbare Leerzeichen entfernt — sonst entsteht <span style="color:var(--r)">KeyError</span> bei Spaltenzugriff</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(61,184,255,.04)'" onmouseout="this.style.background=''">
+            <td style="padding:6px 10px;color:var(--text);font-weight:600;white-space:nowrap">Deals / Spend</td>
+            <td style="padding:6px 10px;color:var(--li)">Finanztypisierung</td>
+            <td style="padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">pd.to_numeric(errors='coerce')</td>
+            <td style="padding:6px 10px;color:var(--li)">«€ 3.500,00» von Text in Float umgewandelt — sonst kann der Umsatz nicht summiert werden</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(61,184,255,.04)'" onmouseout="this.style.background=''">
+            <td style="padding:6px 10px;color:var(--text);font-weight:600;white-space:nowrap">Alle Tabellen</td>
+            <td style="padding:6px 10px;color:var(--li)">Datumsformat</td>
+            <td style="padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">pd.to_datetime(dayfirst=True)</td>
+            <td style="padding:6px 10px;color:var(--li)">EU-Format 30.06.2023 → ISO 2023-06-30. Ohne <i>dayfirst</i> wird 01.07 als 7. Januar gelesen</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(61,184,255,.04)'" onmouseout="this.style.background=''">
+            <td style="padding:6px 10px;color:var(--text);font-weight:600;white-space:nowrap">Contacts / Calls</td>
+            <td style="padding:6px 10px;color:var(--li)">ID-Typisierung</td>
+            <td style="padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">dtype={'Id': str}</td>
+            <td style="padding:6px 10px;color:var(--li)">Ohne dies rundet Python lange IDs auf <span style="color:var(--r)">5,8E+18</span> — JOIN unmöglich</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(61,184,255,.04)'" onmouseout="this.style.background=''">
+            <td style="padding:6px 10px;color:var(--text);font-weight:600;white-space:nowrap">Deals</td>
+            <td style="padding:6px 10px;color:var(--li)">Fin. Lücken → 0</td>
+            <td style="padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">.fillna(0)</td>
+            <td style="padding:6px 10px;color:var(--li)">NaN bei Zahlungen = Lead ohne Zahlung. Mit 0 ersetzen für korrekte Umsatz- und Konversionsberechnung</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(61,184,255,.04)'" onmouseout="this.style.background=''">
+            <td style="padding:6px 10px;color:var(--text);font-weight:600;white-space:nowrap">Calls</td>
+            <td style="padding:6px 10px;color:var(--li)">Status verpasster Anrufe</td>
+            <td style="padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">.fillna('Not Answered')</td>
+            <td style="padding:6px 10px;color:var(--li)">Ohne Kategorie fallen verpasste Anrufe aus dem Erreichbarkeitstrichter — reale Statistik wird verfälscht</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(61,184,255,.04)'" onmouseout="this.style.background=''">
+            <td style="padding:6px 10px;color:var(--text);font-weight:600;white-space:nowrap">Spend</td>
+            <td style="padding:6px 10px;color:var(--li)">Kanalsynchronisierung</td>
+            <td style="padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">.str.strip() + replace()</td>
+            <td style="padding:6px 10px;color:var(--li)">«Google Ads » ≠ «Google Ads» — sonst wird ROMI durch unzugeordnete Zeilen falsch berechnet</td>
+          </tr>
+          <tr onmouseover="this.style.background='rgba(61,184,255,.04)'" onmouseout="this.style.background=''">
+            <td style="padding:6px 10px;color:var(--text);font-weight:600;white-space:nowrap">Contacts</td>
+            <td style="padding:6px 10px;color:var(--li)">Duplikate</td>
+            <td style="padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">.drop_duplicates()</td>
+            <td style="padding:6px 10px;color:var(--li)">Doppelte Kundendatensätze entfernt — sonst Datenbasis überschätzt, Konversion unterschätzt</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 3 PRINZIPIEN + UNENDLICHER ROMI -->
+    <div class="g2" style="gap:12px;margin-bottom:14px">
+      <!-- 3 Prinzipien -->
+      <div class="card" style="padding:14px;border:1px solid var(--b)">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--a);margin-bottom:10px">3 Schlüsselprinzipien des ETL</div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="min-width:24px;height:24px;background:rgba(61,184,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--a)">1</div>
+            <div><div style="font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:2px">Datenerhaltung</div><div style="font-size:10.5px;color:var(--li)">Zeilen mit Lücken wurden nicht gelöscht — markiert als <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">Unknown / None</span>. Das Löschen von Zeilen erhöht die Konversion künstlich.</div></div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="min-width:24px;height:24px;background:rgba(61,184,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--a)">2</div>
+            <div><div style="font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:2px">ID-Typisierung als String</div><div style="font-size:10.5px;color:var(--li)">Erzwungener <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">dtype=str</span> — klassischer Anfängerfehler. Ohne ihn werden lange IDs zu <span style="color:var(--r)">5,8E+18</span> und JOIN schlägt fehl.</div></div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="min-width:24px;height:24px;background:rgba(61,184,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--a)">3</div>
+            <div><div style="font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:2px">Anomalien absichtlich beibehalten</div><div style="font-size:10.5px;color:var(--li)">Zahlungen von 1€ und 9€ = Demo-Zugänge. Gemäß Aufgabenstellung beibehalten — sie spiegeln echte Nutzeraktivität wider und verfälschen nicht den Durchschnittswert relevanter Deals.</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Infinite ROMI insight -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card" style="padding:14px;border:1px solid rgba(15,212,122,.3);background:rgba(15,212,122,.05)">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--g);margin-bottom:8px">💡 Erkenntnis aus der Spend-Bereinigung</div>
+          <div style="font-size:22px;font-weight:800;color:var(--g);margin-bottom:4px">ROMI = ∞</div>
+          <div style="font-size:11px;color:var(--li);line-height:1.6">In Spend.xlsx hat der Kanal <b style="color:var(--text)">Organic</b> das Feld <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px">Spend = 0</span>. Division des Umsatzes durch null ergibt einen <b style="color:var(--g)">unendlichen ROMI</b> — mathematisch korrekt: kostenloser Suchtraffic bringt echtes Geld.</div>
+          <div style="margin-top:8px;font-size:10px;color:var(--mu);background:rgba(15,212,122,.08);border-radius:5px;padding:6px 9px">Organic: <b style="color:var(--g)">9,7% Konversion</b> bei null Werbekosten → bester Effizienzkanal</div>
+        </div>
+        <div class="card" style="padding:14px;border:1px solid var(--b)">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--a3);margin-bottom:8px">🏗 Pipeline-Architektur</div>
+          <div style="font-size:11px;color:var(--li);line-height:1.7">
+            Skripte modular: <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">Calls.py · Contacts.py · Deals.py · Spend.py</span><br>
+            Einziger Einstiegspunkt: <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">run_all_cleaning.py</span> über <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--a3)">subprocess</span><br>
+            <span style="color:var(--mu);font-size:10px">Produktionssystem-Ansatz (Airflow-Style) — jedes Modul ist unabhängig und leicht änderbar.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+   
+<!-- ════════════════════════════════════════════════════ -->
+<!-- SMTR: METRIK-BAUM -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="smtr">
+<div class="si" style="padding-top:30px">
+  <div class="tag">02 / Metrik-Baum</div>
+  <div class="h1">Metrik-<span>Baum</span> des Projekts</div>
+  <div style="font-size:12.5px;color:var(--li);margin-bottom:14px">Kennzahlenhierarchie: von atomaren CRM-Ereignissen bis zum Schlüsselergebnis</div>
+
+  <div style="display:flex;flex-direction:column;align-items:center;width:100%;padding:0 10px;margin-bottom:16px">
+    <div style="display:flex;justify-content:center;margin-bottom:2px">
+      <div class="mtr-node mtr-l1">★ &nbsp;Umsatz (Revenue) &nbsp;·&nbsp; €3,80M</div>
+    </div>
+    <div style="height:14px;width:1px;background:rgba(255,100,100,.4)"></div>
+    <div class="mtr-lvl-lbl">Ebene 2a — Finanzkennzahlen &nbsp;&nbsp;|&nbsp;&nbsp; Ebene 2b — Entscheidungskennzahlen</div>
+    <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:2px">
+      <div class="mtr-node mtr-l2a">Umsatz</div>
+      <div class="mtr-node mtr-l2a">Marginaler Gewinn</div>
+      <div class="mtr-node mtr-l2a" data-tip="Werbebudget 12 Monate: €159K&#10;ROMI = Umsatz / Spend = 2.284%&#10;4,1% des Umsatzes — sparsam">Ad Spend €159K</div>
+      <div style="width:1px;background:rgba(255,255,255,.1);margin:0 6px"></div>
+      <div class="mtr-node mtr-l2b" data-tip="Konversionsrate&#10;2.623 Zahlungen / 8.139 Deals = 32,23%&#10;+1% C1 → +€240K Umsatz">C1 — 32,23%</div>
+      <div class="mtr-node mtr-l2b" data-tip="AOV = €1.199 — erste Rate&#10;APC = 1,0 (einmalig)&#10;ARPPU = €1.199">AOV · APC</div>
+      <div class="mtr-node mtr-l2b" data-tip="CAC = €57 — Akquisitionskosten&#10;ROMI = 2.440% — Werbe-ROI&#10;LTV / CAC = 21,0× — exzellente Ökonomie">CAC · ROMI</div>
+      <div class="mtr-node mtr-l2b" data-tip="Erstanrufgeschwindigkeit ≤ 60 Min&#10;Fast: C1 = 6,33% | Slow: C1 = 5,30%&#10;p=0,0247 · +19,4% · +€98K Umsatz">SLA ≤ 60 Min</div>
+    </div>
+    <div style="height:14px;width:1px;background:rgba(255,100,100,.4)"></div>
+    <div class="mtr-lvl-lbl">Ebene 3 — Produktkennzahlen</div>
+    <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-bottom:2px">
+      <div class="mtr-node mtr-l3">Deals &nbsp;8 139</div>
+      <div class="mtr-node mtr-l3">Kanäle</div>
+      <div class="mtr-node mtr-l3">Produkte</div>
+      <div class="mtr-node mtr-l3">Städte</div>
+      <div class="mtr-node mtr-l3">Dt. Sprache</div>
+      <div class="mtr-node mtr-l3">Manager</div>
+      <div class="mtr-node mtr-l3">Anrufe 95K</div>
+    </div>
+    <div style="height:14px;width:1px;background:rgba(255,100,100,.4)"></div>
+    <div class="mtr-lvl-lbl">Ebene 4 — Atomare Metriken (rohe CRM-Ereignisse)</div>
+    <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap">
+      <div class="mtr-node mtr-l4" data-tip="Deals.Created Time&#10;Datum der Deal-Erstellung&#10;→ Aggregation = monatliche Lead-Dynamik">Created Time</div>
+      <div class="mtr-node mtr-l4" data-tip="Calls.Call Start Time&#10;Anrufbeginn&#10;→ Differenz zu Created Time = SLA">Call Start Time</div>
+      <div class="mtr-node mtr-l4" data-tip="Calls.Call Duration (Sek)&#10;Median: 8 Sek — die meisten verpasst&#10;→ Erreichbarkeitsanalyse">Call Duration</div>
+      <div class="mtr-node mtr-l4" data-tip="Deals.Stage&#10;Won / Lost / In Progress&#10;→ Aggregation = C1 Konversionsrate">Deal Stage</div>
+      <div class="mtr-node mtr-l4" data-tip="Deals.Initial Amount Paid&#10;Zu 100% ausgefüllt (nach Bereinigung NaN→0)&#10;→ AOV und Umsatz aus diesem Feld&#10;⚠ Payment Type nur zu 2,6% ausgefüllt">Amount Paid</div>
+      <div class="mtr-node mtr-l4" data-tip="Spend.Spend (nach Tagen/Kanälen)&#10;→ Aggregation = Ad Spend €159K&#10;→ Join mit Deals über Source = ROMI">Daily Spend</div>
+    </div>
+  </div>
+
+  <div class="g2" style="gap:10px">
+    <div class="card ct" style="padding:13px">
+      <div class="stl">Prinzip des Metrik-Baums</div>
+      <div style="font-size:12px;color:var(--li);line-height:1.7">Atomare Ereignisse werden aggregiert → Produktkennzahlen → Unit-Ökonomie → finanzielles Ergebnis.<br><b style="color:var(--r)">Vanilla-Falle:</b> Mehr Leads (Ebene 3) ohne C1-Steigerung (Ebene 2b) erhöhen den Umsatz nicht — Leads ≠ Geld.</div>
+    </div>
+    <div class="g2" style="gap:10px">
+      <div class="card ct g" style="padding:13px">
+        <div class="stl">Schlüsselformel</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--g);line-height:2">Umsatz = UA(8139) × C1(32,23%) × AOV(€1199)<br>C1 = f(SLA, Kanäle, Manager)<br>+1% C1 → <span style="color:var(--a3)">+€240K</span></div>
+      </div>
+      <div class="card ct r" style="padding:13px">
+        <div class="stl">Haupterkenntnis</div>
+        <div style="font-size:12px;color:var(--li);line-height:1.6">Das Unternehmen ist <b style="color:var(--r)">conversion-limited</b>.<br>UA: 18.510 → Deals: 8.139 → Paid: 2.623.<br>C1 (deal→paid): 32,23%,<br>Marktpotenzial — €29,7M.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- S2: KPI — Interaktiver Rechner -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s2">
+<div class="si">
+  <div class="tag">03 / Deskriptive Statistik &amp; KPI</div>
+  <div class="h1">Wichtigste <span>Kennzahlen</span></div>
+  <!-- Methodology note -->
+  <div style="background:rgba(255,165,0,.08);border:1px solid rgba(255,165,0,.3);border-radius:9px;padding:9px 14px;margin-bottom:10px;font-size:11.5px;color:var(--li);line-height:1.6">
+    <b style="color:#f59e0b">⚠ Berechnungsmethodik:</b>
+    &nbsp;Tatsächliche Einnahmen (Initial Amount Paid): <b style="color:var(--g)">€3,80M</b> — tatsächlicher Umsatz (Feld zu 100% ausgefüllt nach Bereinigung, NaN→0).
+    &nbsp;|&nbsp; Buyers: 2.623 × AOV €1.199 = <b style="color:var(--a)">€3,80M</b> — tatsächlicher Umsatz.
+    &nbsp;|&nbsp; <b style="color:var(--r)">Im gesamten Projekt verwenden wir €3,80M</b> als Hauptzahl.
+    &nbsp;|&nbsp; <b style="color:var(--a3)">Vollständiger Kurspreis</b> (Offer Total) ≈ €7.000–7.500 (Potenzial).
+    &nbsp;|&nbsp; <b style="color:var(--r)">AOV = €1.199 — durchschnittliche erste Rate (2.623 Käufer).
+  </div>
+  <div class="g4" style="margin-bottom:14px">
+    <div class="kpi"><div class="kn" id="kpi-rev">€3.80M</div><div class="kl">Umsatz (Anzahlungen)</div></div>
+    <div class="kpi" style="--a:var(--a2)"><div class="kn" id="kpi-romi">2 440%</div><div class="kl">ROMI</div></div>
+    <div class="kpi" style="--a:var(--a3)"><div class="kn" id="kpi-c1">32.23%</div><div class="kl">Konversionsrate C1</div></div>
+    <div class="kpi" style="--a:var(--g)"><div class="kn" id="kpi-ltv">€1 199</div><div class="kl">ARPPU (AOV)</div></div>
+    <div class="kpi"><div class="kn" id="kpi-aov">€1 202</div><div class="kl">AOV (1. Rate)</div></div>
+    <div class="kpi" style="--a:var(--a2)"><div class="kn" id="kpi-cac">€57</div><div class="kl">CAC</div></div>
+    <div class="kpi" style="--a:var(--a3)"><div class="kn" id="kpi-ratio">21.0×</div><div class="kl">LTV : CAC</div></div>
+    <div class="kpi" style="--a:var(--g)"><div class="kn" id="kpi-paid">2 623</div><div class="kl">Bezahlte Deals</div></div>
+  </div>
+  <div class="ctrl">
+    <div class="ctrl-title">Interaktiver Kennzahlenrechner — Werte anpassen</div>
+    <div class="g2" style="gap:16px">
+      <div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Leads (UA)</div><input type="range" class="ctrl-slider" id="ua-sl" min="5000" max="40000" step="100" value="8139"><div class="ctrl-val" id="ua-v">8 139</div></div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Konversionsrate C1 (%)</div><input type="range" class="ctrl-slider" id="c1-sl" min="1" max="15" step="0.1" value="32.23"><div class="ctrl-val" id="c1-v">32.23%</div></div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Durchschn. Rate AOV (€)</div><input type="range" class="ctrl-slider" id="aov-sl" min="500" max="3000" step="10" value="1199"><div class="ctrl-val" id="aov-v">€1 199</div></div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Wiederhol. Zahlungen (APC)</div><input type="range" class="ctrl-slider" id="apc-sl" min="1" max="6" step="0.1" value="1.0"><div class="ctrl-val" id="apc-v">1.0</div></div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Werbebudget AC (€)</div><input type="range" class="ctrl-slider" id="ac-sl" min="50000" max="400000" step="1000" value="149523"><div class="ctrl-val" id="ac-v">€149K</div></div>
+      </div>
+      <div>
+        <div class="res-box">
+          <div class="res-item"><div class="res-n" id="r-buyers">828</div><div class="res-l">Käufer</div></div>
+          <div class="res-item"><div class="res-n" id="r-rev">€3.80M</div><div class="res-l">Umsatz</div></div>
+          <div class="res-item"><div class="res-n" id="r-cm">€3.7M</div><div class="res-l">CM</div></div>
+          <div class="res-item"><div class="res-n" id="r-romi">2 484%</div><div class="res-l">ROMI</div></div>
+          <div class="res-item"><div class="res-n" id="r-cac">€57</div><div class="res-l">CAC</div></div>
+          <div class="res-item"><div class="res-n" id="r-ltv">€1 199</div><div class="res-l">ARPPU</div></div>
+        </div>
+        <div style="margin-top:10px">
+          <!-- KPI mini-bar chart — pure HTML -->
+          <div style="margin-bottom:7px">
+            <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px">
+              <span style="color:var(--li)">Umsatz Monat 1</span>
+              <span id="kpi-b1" style="color:var(--g);font-family:'JetBrains Mono',monospace">€994K</span>
+            </div>
+            <div style="height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
+              <div id="kbar-b1" style="height:100%;background:var(--g);border-radius:4px;width:55%;transition:width .4s"></div>
+            </div>
+          </div>
+          <div style="margin-bottom:7px">
+            <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px">
+              <span style="color:var(--li)">Folgeumsatz</span>
+              <span id="kpi-b2" style="color:var(--a);font-family:'JetBrains Mono',monospace">€2.86M</span>
+            </div>
+            <div style="height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
+              <div id="kbar-b2" style="height:100%;background:var(--a);border-radius:4px;width:100%;transition:width .4s"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px">
+              <span style="color:var(--li)">Werbebudget AC</span>
+              <span id="kpi-b3" style="color:var(--r);font-family:'JetBrains Mono',monospace">€150K</span>
+            </div>
+            <div style="height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
+              <div id="kbar-b3" style="height:100%;background:var(--r);border-radius:4px;width:5%;transition:width .4s"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="g2" style="margin-top:4px">
+
+    <!-- REVENUE DONUT: 3 arcs = Month1 Rev / Repeat Rev / Ad Cost
+         These proportions CHANGE with every slider! -->
+    <div class="card ct" style="display:flex;flex-direction:column">
+      <div class="stl">Umsatzstruktur (ändert sich mit Reglern)</div>
+      <div style="display:flex;align-items:center;justify-content:center;position:relative;height:175px">
+        <svg viewBox="0 0 200 200" width="155" height="155">
+          <!-- background track -->
+          <circle cx="100" cy="100" r="72" fill="none" stroke="#1a2e45" stroke-width="28"/>
+          <!-- Arc 1: Month 1 revenue (green) -->
+          <circle id="arc-rev1" cx="100" cy="100" r="72" fill="none"
+            stroke="#0fd47a" stroke-width="26" stroke-linecap="butt"
+            stroke-dasharray="100 352" stroke-dashoffset="0"
+            style="transform:rotate(-90deg);transform-origin:100px 100px;transition:stroke-dasharray .5s ease,stroke-dashoffset .5s ease"/>
+          <!-- Arc 2: Repeat revenue (blue) -->
+          <circle id="arc-rev2" cx="100" cy="100" r="72" fill="none"
+            stroke="#3db8ff" stroke-width="26" stroke-linecap="butt"
+            stroke-dasharray="200 252" stroke-dashoffset="-100"
+            style="transform:rotate(-90deg);transform-origin:100px 100px;transition:stroke-dasharray .5s ease,stroke-dashoffset .5s ease"/>
+          <!-- Arc 3: Ad cost (red) -->
+          <circle id="arc-cost" cx="100" cy="100" r="72" fill="none"
+            stroke="#ff4466" stroke-width="26" stroke-linecap="butt"
+            stroke-dasharray="20 432" stroke-dashoffset="-300"
+            style="transform:rotate(-90deg);transform-origin:100px 100px;transition:stroke-dasharray .5s ease,stroke-dashoffset .5s ease"/>
+        </svg>
+        <div style="position:absolute;text-align:center;pointer-events:none">
+          <div id="revTotal" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#3db8ff;line-height:1">&#8364;3.86M</div>
+          <div style="font-size:8px;color:#6b7fa3;text-transform:uppercase;letter-spacing:2px;margin-top:2px">Revenue</div>
+        </div>
+      </div>
+      <!-- Legend: 3 dynamic rows -->
+      <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;align-items:center">
+          <span style="display:flex;align-items:center;gap:5px">
+            <span style="width:9px;height:9px;background:#0fd47a;border-radius:2px"></span>
+            <span style="color:#a4b8d0">Umsatz M1 (B×AOV)</span>
+          </span>
+          <span><b id="rev-m1" style="font-family:'JetBrains Mono',monospace;color:#0fd47a">&#8364;995K</b>
+          <span id="pct-m1" style="color:#6b7fa3;font-size:10px">20.7%</span></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;align-items:center">
+          <span style="display:flex;align-items:center;gap:5px">
+            <span style="width:9px;height:9px;background:#3db8ff;border-radius:2px"></span>
+            <span style="color:#a4b8d0">Wiederholungszahlungen ×(APC-1)</span>
+          </span>
+          <span><b id="rev-rep" style="font-family:'JetBrains Mono',monospace;color:#3db8ff">&#8364;2.86M</b>
+          <span id="pct-rep" style="color:#6b7fa3;font-size:10px">74.9%</span></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;align-items:center">
+          <span style="display:flex;align-items:center;gap:5px">
+            <span style="width:9px;height:9px;background:#ff4466;border-radius:2px"></span>
+            <span style="color:#a4b8d0">Werbebudget AC</span>
+          </span>
+          <span><b id="rev-ac" style="font-family:'JetBrains Mono',monospace;color:#ff4466">&#8364;150K</b>
+          <span id="pct-ac" style="color:#6b7fa3;font-size:10px">4.1%</span></span>
+        </div>
+      </div>
+      <!-- Also update product split in small text -->
+      <div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,.07);font-size:10px;color:#6b7fa3;display:flex;gap:10px;flex-wrap:wrap">
+        <span>DM: <b id="rev-dm" style="color:#0fd47a">&#8364;2.25M</b></span>
+        <span>UX: <b id="rev-ux" style="color:#8b5cf6">&#8364;1.13M</b></span>
+        <span>Web: <b id="rev-web" style="color:#ff4466">&#8364;475K</b></span>
+      </div>
+    </div>
+
+    <!-- STAGE BARS: absolute heights vs UA total (changes visually!) -->
+    <div class="card ct p" style="display:flex;flex-direction:column">
+      <div class="stl">Trichterphasen (von UA Leads)</div>
+      <div id="stageBars" style="flex:1;min-height:140px;display:flex;align-items:flex-end;gap:4px;padding-top:20px"></div>
+      <div id="stageXlbls" style="display:flex;gap:4px;margin-top:5px"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:#6b7fa3">
+        <span>Zahlungen: <b id="stage-paid" style="color:#0fd47a">2.623</b></span>
+        <span>Konversion: <b id="stage-conv" style="color:#0fd47a">32,23%</b></span>
+        <span>Verloren: <b id="stage-lost" style="color:#ff4466">15.743</b></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- S3: FUNNEL — interaktiv -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s3">
+<div class="si">
+  <div class="tag">03 / Trichteranalyse</div>
+  <div class="h1">Konversions-<span>trichter</span></div>
+  <div class="ctrl">
+    <div class="ctrl-title">Konversion je Stufe anpassen</div>
+    <div class="g2" style="gap:16px">
+      <div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Leads gesamt</div><input type="range" class="ctrl-slider" id="f-ua" min="5000" max="40000" step="100" value="8139"><div class="ctrl-val" id="f-ua-v">8 139</div></div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Erstkontakt (%)</div><input type="range" class="ctrl-slider" id="f-c1" min="40" max="100" step="1" value="77"><div class="ctrl-val" id="f-c1-v">77%</div></div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Qualifizierung (%)</div><input type="range" class="ctrl-slider" id="f-c2" min="20" max="100" step="1" value="63"><div class="ctrl-val" id="f-c2-v">63%</div></div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Angebot (%)</div><input type="range" class="ctrl-slider" id="f-c3" min="5" max="80" step="1" value="26"><div class="ctrl-val" id="f-c3-v">26%</div></div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Zahlung (%)</div><input type="range" class="ctrl-slider" id="f-c4" min="5" max="80" step="1" value="37"><div class="ctrl-val" id="f-c4-v">37%</div></div>
+      </div>
+      <div>
+        <div class="fun" id="funnel"></div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <div class="kpi" style="flex:1;padding:9px 12px"><div class="kn" id="f-out" style="font-size:24px">2 623</div><div class="kl">Zahlungen gesamt</div></div>
+          <div class="kpi" style="flex:1;padding:9px 12px;--a:var(--r)"><div class="kn" id="f-lost" style="font-size:24px;color:var(--r)">17 690</div><div class="kl">Verlorene Leads</div></div>
+          <div class="kpi" style="flex:1;padding:9px 12px;--a:var(--g)"><div class="kn" id="f-cr" style="font-size:24px;color:var(--g)">4.63%</div><div class="kl">Gesamtkonversion</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="g2" style="flex:1">
+    <div class="card ct"><div class="stl">Trichterdynamik</div><div class="cw" style="height:160px"><canvas id="funnelBar"></canvas></div></div>
+    <div class="card ct p" style="padding:14px">
+      <div class="stl">Verlustgründe (Lost = 72,9%)</div>
+      <div class="cw" style="height:160px"><canvas id="lostMini"></canvas></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- S4: KANÄLE — interaktiv -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s4">
+<div class="si">
+  <div class="tag">04 / Kampagnen &amp; Kanäle</div>
+  <div class="h1">ROMI nach <span>Kanälen</span></div>
+  <div class="ctrl">
+    <div class="ctrl-title">Budget umverteilen — ROMI wird neu berechnet</div>
+    <div id="chan-inputs" style="display:grid;grid-template-columns:1fr 1fr;gap:5px 20px"></div>
+    <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--mu)">Budget:</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--a3)" id="tot-budget">€149 523</span>
+      <span id="budget-warn" style="font-size:11px;color:var(--r);display:none">⚠ überschritten</span>
+    </div>
+  </div>
+  <div class="g2" style="flex:1">
+    <div class="card ct"><div class="stl">ROMI nach Kanälen, %</div><div class="cw" style="height:230px"><canvas id="chanRomi"></canvas></div></div>
+    <div class="card ct p">
+      <div class="stl">Quellen vs Leads vs Ausgaben</div>
+      <div class="cw" style="height:230px"><canvas id="chanScatter"></canvas></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- S5: UNIT-ÖKONOMIE -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s5">
+<div class="si">
+  <div class="tag">05 / Produkte &amp; Zahlungen</div>
+  <div class="h1">Unit-<span>Ökonomie</span> nach Produkten</div>
+
+  <!-- UNIT DEFINITION -->
+  <div class="box box-b" style="margin-bottom:14px;font-size:12px">
+    <b>Unit</b> = ein Kunde, der einen Kurs gekauft hat.
+    &nbsp;Schlüsselregel: <b>LTV &gt; CAC</b> — profitables Unternehmen.&nbsp;
+    Unser LTV/CAC = <b style="color:var(--g)">21,0×</b> ✓
+    &nbsp;|&nbsp; Gewinnformel: <span style="font-family:'JetBrains Mono',monospace;color:var(--a3)">Profit = (−CPA + AMPU) × UA</span>
+    &nbsp;wobei AMPU = C1 × ARPPU × Margin
+  </div>
+
+  <!-- MAIN METRICS TABLE -->
+  <table class="tbl" style="margin-bottom:14px; text-align: right;">
+    <thead>
+      <tr>
+        <th style="text-align: center;">Produkt</th> <th style="text-align: center;">B</th> <th style="text-align: center;">Anteil</th>
+		<th style="text-align: center;">AOV</th> <th style="text-align: center;">CAC</th> <th style="text-align: center;">Margin</th> <th style="text-align: center;">Margin %</th> 
+		<th style="text-align: center;">Revenue</th> <th style="text-align: center;">ROMI</th>
+      </tr>
+    </thead>
+    <tbody>
+	  <tr>
+        <td style="text-align: left;">Digital Marketing</td><td>1 753</td><td>55.3%</td>
+        <td>€1 202</td><td>€47.20</td><td>€1 155</td>
+        <td><span class="pill pg">96.1%</span></td>
+        <td>€2 107 459</td><td><span class="pill pg">2 447%</span></td>
+      </tr>
+      <tr>
+        <td style="text-align: left;">UX/UI Design</td><td>894</td><td>28.2%</td>
+        <td>€1 254</td><td>€47.20</td><td>€1 206</td>
+        <td><span class="pill pg">96.2%</span></td>
+        <td>€1 121 100</td><td><span class="pill pg">2 557%</span></td>
+      </tr>
+	  <tr>
+        <td style="text-align: left;">Web Developer</td><td>511</td><td>16.1%</td>
+        <td>€1 096</td><td>€47.20</td><td>€1 048</td>
+        <td><span class="pill pg">95.7%</span></td>
+        <td>€560 150</td><td><span class="pill pg">2 222%</span></td>
+      </tr>
+	  <tr>
+        <td style="text-align: left;"><b>TOTAL</b></td><td>3 158</td><td>100.0%</td>
+        <td>€1 199</td><td>€47.20</td><td>€1 152</td>
+        <td><span class="pill pg">96.1%</span></td>
+        <td>€3 788 709</td><td><span class="pill pg">2 442%</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- LTV vs CAC + LEVERS -->
+  <div class="g2" style="gap:14px;margin-bottom:14px">
+
+    <!-- LTV vs CAC visualization -->
+    <div class="card ct" style="padding:14px">
+      <div class="stl">LTV vs CAC — nach Produkten</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--li)">Digital Marketing</span>
+            <span style="font-family:'JetBrains Mono',monospace"><span style="color:var(--g)">AOV €1 202</span> / <span style="color:var(--r)">CAC €57</span> = <b style="color:var(--g)">21.1×</b></span>
+          </div>
+          <div style="position:relative;height:18px;background:var(--bg3);border-radius:5px;overflow:hidden">
+            <div style="position:absolute;left:0;top:0;height:100%;width:100%;background:#0fd47a33;border-radius:5px"></div>
+            <div style="position:absolute;left:0;top:0;height:100%;width:7%;background:var(--r);border-radius:5px;display:flex;align-items:center;padding-left:4px"><span style="font-size:8px;color:#fff;white-space:nowrap">CAC</span></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--li)">UX/UI Design</span>
+            <span style="font-family:'JetBrains Mono',monospace"><span style="color:var(--g)">AOV €1 254</span> / <span style="color:var(--r)">CAC €57</span> = <b style="color:var(--g)">22.0×</b></span>
+          </div>
+          <div style="position:relative;height:18px;background:var(--bg3);border-radius:5px;overflow:hidden">
+            <div style="position:absolute;left:0;top:0;height:100%;width:100%;background:#8b5cf633;border-radius:5px"></div>
+            <div style="position:absolute;left:0;top:0;height:100%;width:13%;background:var(--r);border-radius:5px;display:flex;align-items:center;padding-left:4px"><span style="font-size:8px;color:#fff;white-space:nowrap">CAC</span></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--li)">Web Developer</span>
+            <span style="font-family:'JetBrains Mono',monospace"><span style="color:var(--a3)">AOV €1 096</span> / <span style="color:var(--r)">CAC €57</span> = <b style="color:var(--g)">19.2×</b></span>
+          </div>
+          <div style="position:relative;height:18px;background:var(--bg3);border-radius:5px;overflow:hidden">
+            <div style="position:absolute;left:0;top:0;height:100%;width:100%;background:#f59e0b22;border-radius:5px"></div>
+            <div style="position:absolute;left:0;top:0;height:100%;width:26%;background:var(--r);border-radius:5px;display:flex;align-items:center;padding-left:4px"><span style="font-size:8px;color:#fff;white-space:nowrap">CAC 26%</span></div>
+          </div>
+        </div>
+        <div class="box box-r" style="font-size:11px;padding:8px 12px">
+          <b>⚠ Web Developer: ROMI 1.823% — niedriger als DM (2.009%) und UX (2.100%)</b>. Skalierungspriorität: Digital Marketing → UX/UI → Web Dev.
+        </div>
+      </div>
+    </div>
+
+    <!-- GROWTH LEVERS -->
+    <div class="card ct p" style="padding:14px">
+      <div class="stl">Wachstumshebel</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;border-left:3px solid var(--g)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+            <span style="font-size:12px;font-weight:600;color:var(--g)">⬇ CAC senken</span>
+            <span class="pill pg">Quick Win</span>
+          </div>
+          <div style="font-size:11px;color:var(--li)">Budget umverteilen: Organic/Webinar statt TikTok. Einsparung ≈€30K/Jahr</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;border-left:3px solid var(--a)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+            <span style="font-size:12px;font-weight:600;color:var(--a)">⬆ C1 steigern</span>
+            <span class="pill pb">Mid-term</span>
+          </div>
+          <div style="font-size:11px;color:var(--li)">SLA ≤60 Min → +19,4% Konversion. C1: 32,23% → höher = +€780K Umsatz</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;border-left:3px solid var(--a2)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+            <span style="font-size:12px;font-weight:600;color:var(--a2)">⬆ ARPPU erhöhen</span>
+            <span class="pill pp">Mid-term</span>
+          </div>
+          <div style="font-size:11px;color:var(--li)">Upsells, Pakete, Zusatzverkäufe. ARPPU: €1.199 → €1.319 (+10%) = +€315K</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;border-left:3px solid var(--a3)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+            <span style="font-size:12px;font-weight:600;color:var(--a3)">⬆ LTV steigern</span>
+            <span class="pill py">Long-term</span>
+          </div>
+          <div style="font-size:11px;color:var(--li)">Folgekurse, Abonnement, Empfehlungsprogramm. LTV → €6.000+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNIT PROFIT FORMULA + SCENARIO -->
+  <div class="ctrl" style="margin-bottom:0">
+    <div class="ctrl-title">Interaktiver Unit-Gewinnrechner — Formel: Profit = (−CPA + AMPU) × UA</div>
+    <div class="g2" style="gap:16px">
+      <div>
+        <div class="ctrl-row"><div class="ctrl-lbl">CPA / CAC (€)</div><input type="range" class="ctrl-slider" id="ue-cac" min="10" max="300" step="5" value="57"><div class="ctrl-val" id="ue-cac-v">€57</div></div>
+        <div class="ctrl-row"><div class="ctrl-lbl">ARPPU (€)</div><input type="range" class="ctrl-slider" id="ue-arppu" min="500" max="3000" step="10" value="1199"><div class="ctrl-val" id="ue-arppu-v">€1 199</div></div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Margin (%)</div><input type="range" class="ctrl-slider" id="ue-margin" min="20" max="99" step="1" value="96"><div class="ctrl-val" id="ue-margin-v">96%</div></div>
+        <div class="ctrl-row"><div class="ctrl-lbl">C1 (%)</div><input type="range" class="ctrl-slider" id="ue-c1" min="1" max="20" step="0.1" value="32.23"><div class="ctrl-val" id="ue-c1-v">32.23%</div></div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Nutzer (UA)</div><input type="range" class="ctrl-slider" id="ue-ua" min="1000" max="50000" step="100" value="8139"><div class="ctrl-val" id="ue-ua-v">8 139</div></div>
+      </div>
+      <div>
+        <div class="res-box">
+          <div class="res-item"><div class="res-n" id="ue-ampu">€199</div><div class="res-l">AMPU</div></div>
+          <div class="res-item"><div class="res-n" id="ue-profit-unit">+€18</div><div class="res-l">Profit / Unit</div></div>
+          <div class="res-item"><div class="res-n" id="ue-profit-total">+€334K</div><div class="res-l">Profit GESAMT</div></div>
+          <div class="res-item"><div class="res-n" id="ue-ltv-cac">25.8×</div><div class="res-l">LTV : CAC</div></div>
+        </div>
+        <div id="ue-verdict" class="box box-g" style="margin-top:10px;font-size:12px;text-align:center">
+          ✅ Profitabel: LTV > CAC
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- S6: MANAGER & KAMPAGNEN -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s6">
+<div class="si">
+  <div class="tag">06 / Vertriebseffizienz</div>
+  <div class="h1">Manager &amp; <span>Kampagnen</span></div>
+  <div class="g2" style="flex:1;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card ct" style="flex:1">
+        <div class="stl">Manager: Deals · Konversion · Umsatz</div>
+        <div class="cw" style="height:210px"><canvas id="mgrBubble"></canvas></div>
+      </div>
+      <div class="ctrl" style="margin-bottom:0">
+        <div class="ctrl-title">Filter: Mindestkonversion</div>
+        <div class="ctrl-row"><div class="ctrl-lbl">Min. Konversion (%)</div><input type="range" class="ctrl-slider" id="mgr-filter" min="0" max="30" step="0.5" value="0"><div class="ctrl-val" id="mgr-fv">0%</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="card ct g" style="padding:14px">
+        <div class="stl">Top-3 nach Umsatz</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:12px">
+          <div style="display:flex;justify-content:space-between"><span style="font-weight:600">1. Cara Iverson</span><div><span class="pill pg">11.48%</span> <span style="color:var(--mu)">€684K · 101 Verk.</span></div></div>
+          <div style="display:flex;justify-content:space-between"><span style="font-weight:600">2. Ulysses Adams</span><div><span class="pill pg">29.57%</span> <span style="color:var(--mu)">€510K · 535 Verk.</span></div></div>
+          <div style="display:flex;justify-content:space-between"><span style="font-weight:600">3. Charlie Davis</span><div><span class="pill pb">20.56%</span> <span style="color:var(--mu)">€413K · 415 Verk.</span></div></div>
+        </div>
+        <div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--b);font-size:11px;color:var(--mu)">Top-3 nach Konversion (Kontakte→Verkauf): <b style="color:var(--g)">Ulysses 29,57%</b> · Victor Barnes 25,47% · Kevin Parker 23,46%</div>
+      </div>
+      <div class="card ct am" style="padding:13px">
+        <div class="stl">⚠ Oliver Taylor — Anomalie, keine "Top-Konversion"</div>
+        <div style="font-size:12px;color:var(--li);line-height:1.6">19 Kontakte · <b style="color:var(--a3)">147 Verkäufe</b> · €144K Umsatz<br>
+        Konversion Verkäufe/Kontakte = <b style="color:var(--r)">773,68%</b> — mathematisch unmöglich, ein Datenproblem, kein Verkaufsphänomen.<br>
+        <b style="color:var(--a3)">Ursache:</b> Contact Owner und Deal Owner sind unterschiedliche Felder. Oliver führt kaum eigene Kontakte — er schließt Deals ab, die von <b>anderen</b> Managern begonnen wurden.<br>
+        <span style="color:var(--g);font-size:11px">→ Untersuchen, bei welchen Deals er Deal Owner ist — das zeigt, wessen Leadgen er "abschließt", und ob sein Abschluss-Skript getrennt von der Leadgenerierung repliziert werden kann.</span></div>
+      </div>
+      <div class="card ct" style="flex:1">
+        <div class="stl">Top-Kampagnen nach Konversion</div>
+        <div class="cw" style="height:130px"><canvas id="campChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- S7: SLA — REAKTIONSGESCHWINDIGKEIT -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s7">
+<div class="si">
+  <div class="tag">07 / Zeitreihenanalyse &amp; SLA</div>
+  <div class="h1">Geschwindigkeit des ersten <span>Kontakts</span></div>
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card ct">
+      <div class="stl">χ²-Test — Ergebnisse</div>
+      <div class="g2" style="gap:8px;margin-bottom:10px">
+        <div style="background:var(--bg3);border-radius:7px;padding:12px;text-align:center">
+          <div style="font-size:10px;color:var(--mu);margin-bottom:3px">Fast Contact (≤60 Min)</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--g)">6,33%</div><div style="font-size:10px;color:var(--mu)">Konversion</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:7px;padding:12px;text-align:center">
+          <div style="font-size:10px;color:var(--mu);margin-bottom:3px">Slow Contact (>60 Min)</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--r)">5,30%</div><div style="font-size:10px;color:var(--mu)">Konversion</div>
+        </div>
+      </div>
+      <div style="background:var(--gb);border:1px solid var(--gbd);border-radius:7px;padding:10px;font-size:12px;color:var(--li)">
+        Zuwachs: <b style="color:var(--g)">+19,4%</b> &nbsp;·&nbsp; p-value: <b style="color:var(--g)">0,0247 &lt; 0,05</b> ✓<br>
+        Logregression: <span style="font-family:'JetBrains Mono',monospace;color:var(--r)">coef=−0,0527</span>, <span style="font-family:'JetBrains Mono',monospace;color:var(--a)">p=0,007</span>
+      </div>
+    </div>
+    <div class="card ct p">
+      <div class="stl">Interaktiver SLA-Effektrechner</div>
+      <div class="ctrl-row"><div class="ctrl-lbl">SLA-Schwelle (Min)</div><input type="range" class="ctrl-slider" id="sla-t" min="15" max="180" step="5" value="60"><div class="ctrl-val" id="sla-tv">60 Min</div></div>
+      <div class="ctrl-row"><div class="ctrl-lbl">Aktuelle C1 (%)</div><input type="range" class="ctrl-slider" id="sla-c1" min="2" max="10" step="0.1" value="32.23"><div class="ctrl-val" id="sla-c1v">32.23%</div></div>
+      <div class="ctrl-row"><div class="ctrl-lbl">Leads (UA)</div><input type="range" class="ctrl-slider" id="sla-ua" min="5000" max="40000" step="500" value="18548"><div class="ctrl-val" id="sla-uav">8 139</div></div>
+      <div class="ctrl-row"><div class="ctrl-lbl">AOV (€)</div><input type="range" class="ctrl-slider" id="sla-aov" min="500" max="3000" step="50" value="1202"><div class="ctrl-val" id="sla-aovv">€1 202</div></div>
+      <div style="margin-top:8px" class="res-box">
+        <div class="res-item"><div class="res-n" id="sla-cur">828</div><div class="res-l">Zahlungen aktuell</div></div>
+        <div class="res-item"><div class="res-n" id="sla-new">910</div><div class="res-l">Nach SLA</div></div>
+        <div class="res-item"><div class="res-n" id="sla-delta" style="color:var(--a3)">+€98K</div><div class="res-l">Zusatzumsatz</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card ct"><div class="stl">Wöchentliche Dynamik (Jul 2023 — Jun 2024)</div><div class="cw" style="height:150px"><canvas id="weekChart"></canvas></div></div>
+    <div class="card ct am"><div class="stl">Konversion nach SLA-Gruppen</div><div class="cw" style="height:150px"><canvas id="slaChart"></canvas></div></div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- S7b: MANAGER & KONVERSION — ANALYSE -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s7b">
+<div class="si">
+  <div class="tag">08 / Manager-Analyse</div>
+  <div class="h1">Leads, Manager &amp; <span>Marktgrenze</span></div>
+
+  <!-- KEY INSIGHT BOX -->
+  <div style="background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.28);border-radius:12px;padding:14px 18px;margin-bottom:14px;font-size:13px;line-height:1.7;color:var(--li)">
+    <b style="color:var(--a3)">💡 Schlüssel-Erkenntnis:</b>
+    Mehr Manager → Konversion steigt zunächst, dann <b style="color:var(--r)">fällt sie</b>.
+    Das Zahlungsvolumen bleibt fast konstant: der Markt hat eine <b style="color:var(--a)">physikalische Grenze</b> — nicht alle Leads sind kaufbereit.
+    Regel: <span style="font-family:'JetBrains Mono',monospace;color:var(--g)">Konversion ↓ aber Zahlungen ↑ — normal. Zahlungen ↓ — sofort handeln.</span>
+  </div>
+
+  <!-- CHART: Leads + Conversion by manager count -->
+  <div class="g2" style="gap:14px;margin-bottom:14px">
+    <div class="card ct" style="padding:14px">
+      <div class="stl">Konversion &amp; Lead-Volumen nach Anzahl aktiver Manager</div>
+      <div class="cw" style="height:220px"><canvas id="tenureChart"></canvas></div>
+    </div>
+
+    <!-- PAID vs CONVERSION comparison -->
+    <div class="card ct p" style="padding:14px">
+      <div class="stl">Dynamik: Zahlungen vs Konversion — Fallstrick</div>
+      <div class="cw" style="height:220px"><canvas id="tenurePaidChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ANALYSIS GRID -->
+  <div class="g2" style="gap:14px;margin-bottom:14px">
+    <!-- Left: Scenarios -->
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="background:var(--bg3);border-radius:10px;padding:13px 15px;border-left:3px solid var(--g)">
+        <div style="font-size:12px;font-weight:600;color:var(--g);margin-bottom:4px">✅ Szenario A — normal</div>
+        <div style="font-size:12px;color:var(--li)">
+          Konversion <b>fiel</b> von 6% → 4%<br>
+          Zahlungen <b style="color:var(--g)">stiegen</b>: 70 → 95<br>
+          <span style="font-size:11px;color:var(--mu)">→ Markt wächst, Zielgruppe breiter. Unternehmen gesund.</span>
+        </div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:13px 15px;border-left:3px solid var(--r)">
+        <div style="font-size:12px;font-weight:600;color:var(--r);margin-bottom:4px">❌ Szenario B — Alarm</div>
+        <div style="font-size:12px;color:var(--li)">
+          Konversion <b>fiel</b> von 6% → 4%<br>
+          Zahlungen <b style="color:var(--r)">sanken</b>: 70 → 52<br>
+          <span style="font-size:11px;color:var(--mu)">→ Manager wurden nachlässig: „der andere macht es". Standards nötig.</span>
+        </div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:13px 15px;border-left:3px solid var(--a)">
+        <div style="font-size:12px;font-weight:600;color:var(--a);margin-bottom:4px">📊 Unsere Daten</div>
+        <div style="font-size:12px;color:var(--li)">
+          Oliver Taylor: 19 Kontakte, aber <b style="color:var(--a3)">147 Verkäufe</b> — schließt fremde Leads ab<br>
+          Team (Kontakte→Verkauf): Durchschnitt <b style="color:var(--a)">~18%</b>, Top Ulysses Adams 29,57%<br>
+          <span style="font-size:11px;color:var(--mu)">Physikalische Marktgrenze ≈ <b style="color:var(--g)">3.100–3.200 Verkäufe/Jahr</b> bei aktueller Reichweite</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Recommendations -->
+    <div class="card ct am" style="padding:14px">
+      <div class="stl">Was tun: Kampf gegen den Verantwortungsdiffusionseffekt</div>
+      <div style="display:flex;flex-direction:column;gap:9px;margin-top:6px">
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
+          <div style="font-size:11.5px;font-weight:600;color:var(--a);margin-bottom:3px">1. Persönlicher KPI = Zahlungen, nicht Anrufe</div>
+          <div style="font-size:11px;color:var(--li)">Jeder Manager ist für seine Leads von A bis Z verantwortlich. Keine „fremden" Leads.</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
+          <div style="font-size:11.5px;font-weight:600;color:var(--a2);margin-bottom:3px">2. SLA-Standard ≤ 60 Min für alle</div>
+          <div style="font-size:11px;color:var(--li)">Durch χ²-Test bewiesen: Anruf ≤60 Min → C1 6,33% vs 5,30% (p=0,0247). Als Standard für alle einführen.</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
+          <div style="font-size:11.5px;font-weight:600;color:var(--g);margin-bottom:3px">3. Überwachen: Zahlungen ≥ Baseline</div>
+          <div style="font-size:11px;color:var(--li)">Dashboard: wenn Zahlungen/Manager fallen — sofortige Analyse. Nicht bis zum Quartal warten.</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
+          <div style="font-size:11.5px;font-weight:600;color:var(--a3);margin-bottom:3px">4. Marktgrenze: Zielgruppe erweitern</div>
+          <div style="font-size:11px;color:var(--li)">Neue Städte, B1-, B2-Niveau. Mehr Leads ohne mehr Zahlungen = überhitzte Zielgruppe.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMULA BOX -->
+  <div style="background:rgba(61,184,255,.07);border:1px solid rgba(61,184,255,.2);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--li);text-align:center">
+    Monitoring-Regel:
+    <span style="font-family:'JetBrains Mono',monospace;color:var(--a)">Effizienz = Zahlungen / Manager</span>
+    &nbsp;|&nbsp;
+    <span style="font-family:'JetBrains Mono',monospace;color:var(--g)">Grenze = stabile Zahlungen bei steigenden Leads</span>
+    &nbsp;|&nbsp;
+    <span style="font-family:'JetBrains Mono',monospace;color:var(--r)">Alarm = Zahlungen ↓ bei Leads ↑</span>
+  </div>
+</div>
+</div>
+
+<!-- S8: GEOGRAFISCHE ANALYSE -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s8">
+<div class="si" style="padding-top:40px;padding-bottom:80px">
+  <div class="tag">08 / Geografische Analyse</div>
+  <div class="h1">Städte Deutschlands &amp; <span>Sprachniveau</span></div>
+
+  <!-- KPI strip -->
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+    <div class="kpi" style="flex:1"><div class="kn">26</div><div class="kl">Städte mit Verkäufen</div></div>
+    <div class="kpi" style="--a:var(--g);flex:1"><div class="kn">Berlin</div><div class="kl">Spitzenreiter — 78 Deals · €187K</div></div>
+    <div class="kpi" style="--a:var(--a3);flex:1"><div class="kn">66.7%</div><div class="kl">Max. Konversion (Wien)</div></div>
+    <div class="kpi" style="--a:var(--a2);flex:1"><div class="kn">B1</div><div class="kl">Spitze Konversion nach Sprache</div></div>
+  </div>
+
+  <!-- ═══ MAIN MAP CARD ═══ -->
+  <div style="background:var(--card);border:1px solid var(--b);border-radius:14px;margin-bottom:14px">
+
+    <!-- toolbar -->
+    <div style="padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--a)">🛰 INTERAKTIVE KARTE — DEALS NACH STÄDTEN</div>
+
+      <!-- layer switcher -->
+      <div style="display:flex;gap:4px" id="layerBtns">
+        <button onclick="setLayer('satellite')" id="btn-satellite"
+          style="padding:4px 10px;border-radius:6px;border:1px solid var(--a);background:rgba(61,184,255,.18);color:var(--a);font-size:10px;cursor:pointer;font-family:Inter">🛰 Satellit</button>
+        <button onclick="setLayer('hybrid')" id="btn-hybrid"
+          style="padding:4px 10px;border-radius:6px;border:1px solid var(--b);background:transparent;color:var(--mu);font-size:10px;cursor:pointer;font-family:Inter">🗺 Hybrid</button>
+        <button onclick="setLayer('streets')" id="btn-streets"
+          style="padding:4px 10px;border-radius:6px;border:1px solid var(--b);background:transparent;color:var(--mu);font-size:10px;cursor:pointer;font-family:Inter">📍 Karte</button>
+      </div>
+
+      <!-- legend -->
+      <div style="display:flex;gap:10px;align-items:center;font-size:10px;color:var(--mu)">
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#0fd47a;border-radius:50%;display:inline-block;box-shadow:0 0 6px #0fd47a66"></span>≥50%</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#3db8ff;border-radius:50%;display:inline-block;box-shadow:0 0 6px #3db8ff66"></span>35–50%</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#f59e0b;border-radius:50%;display:inline-block;box-shadow:0 0 6px #f59e0b66"></span>20–35%</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#ff4466;border-radius:50%;display:inline-block;box-shadow:0 0 6px #ff446666"></span>&lt;20%</span>
+      </div>
+    </div>
+
+    <!-- Map + info panel -->
+    <div style="display:flex">
+      <!-- MAP -->
+      <div id="geoMap" style="height:400px;flex:1;min-width:0"></div>
+
+      <!-- Side info panel -->
+      <div id="cityPanel" style="width:220px;flex-shrink:0;background:var(--bg2);border-left:1px solid var(--b);padding:14px;overflow-y:auto;height:400px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--a);margin-bottom:12px">STADTINFORMATIONEN</div>
+        <div id="panel-placeholder" style="font-size:12px;color:var(--mu);line-height:1.7">
+          Auf den Kreis<br>auf der Karte klicken<br>für Stadtdetails
+          <div style="margin-top:16px;font-size:10px;color:var(--mu)">
+            Blasengröße<br>= Umsatz<br><br>
+            Farbe = Konversion
+          </div>
+        </div>
+        <div id="panel-city" style="display:none">
+          <div id="panel-name" style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--text);line-height:1;margin-bottom:8px"></div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <div style="background:var(--bg3);border-radius:7px;padding:9px 11px">
+              <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Leads gesamt</div>
+              <div id="panel-total" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--a);line-height:1"></div>
+            </div>
+            <div style="background:var(--bg3);border-radius:7px;padding:9px 11px">
+              <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Bezahlte Deals</div>
+              <div id="panel-paid" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--g);line-height:1"></div>
+            </div>
+            <div style="background:var(--bg3);border-radius:7px;padding:9px 11px">
+              <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Konversion</div>
+              <div id="panel-conv" style="font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1"></div>
+              <div id="panel-convbar" style="height:5px;background:var(--bg2);border-radius:3px;margin-top:6px;overflow:hidden"><div id="panel-convfill" style="height:100%;border-radius:3px;transition:width .4s"></div></div>
+            </div>
+            <div style="background:var(--bg3);border-radius:7px;padding:9px 11px">
+              <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Umsatz</div>
+              <div id="panel-rev" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--a3);line-height:1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- status bar -->
+    <div style="padding:7px 14px;background:var(--bg3);border-top:1px solid var(--b);font-size:10px;color:var(--mu);display:flex;justify-content:space-between;align-items:center">
+      <span>Blasengröße = Umsatz &nbsp;·&nbsp; <span id="map-hover" style="color:var(--a)">Stadt für Details anklicken</span></span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:9px">Leaflet + Google Maps</span>
+    </div>
+  </div>
+
+  <!-- ═══ CHARTS ROW ═══ -->
+  <div class="g2" style="gap:14px;margin-bottom:14px">
+    <div class="card ct" style="padding:14px">
+      <div class="stl">Top-10-Städte — Umsatz, Konversion &amp; Reichweite (Zahl./100K Einw.)</div>
+      <div class="cw" style="height:220px"><canvas id="cityChart"></canvas></div>
+    </div>
+    <div class="card ct p" style="padding:14px">
+      <div class="stl">Deutschniveau (CEFR) vs Konversion</div>
+      <div class="cw" style="height:200px"><canvas id="cefrChart"></canvas></div>
+      <div style="margin-top:6px;font-size:11px;background:rgba(15,212,122,.07);border:1px solid rgba(15,212,122,.2);border-radius:7px;padding:7px 10px;color:var(--li)"><b style="color:var(--g)">B1 — Spitzenkonversion 98,37%</b> beim größten Volumen (673 Deals).</div>
+    </div>
+  </div>
+
+  <!-- ═══ SPRACHNIVEAU-TABELLE ═══ -->
+  <div class="card ct" style="padding:14px">
+    <div class="stl">Konversion nach CEFR-Niveau — schulweit</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr>
+        <th style="padding:5px 10px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--a)">Niveau</th>
+        <th style="padding:5px 10px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--mu)">A1</th>
+        <th style="padding:5px 10px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--mu)">A2</th>
+        <th style="padding:5px 10px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--a);background:rgba(61,184,255,.06)">Konversion</th>
+        <th style="padding:5px 10px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--mu)">B2</th>
+        <th style="padding:5px 10px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--mu)">C1</th>
+      </tr></thead>
+      <tbody id="hmapBody"></tbody>
+    </table>
+    <div style="margin-top:8px;font-size:11px;color:var(--mu)">B1 = größtes Volumen (673 Deals, 3,68% der Basis) und stabil hohe Konversion (98,37%). <b style="color:var(--a)">Werbung auf B1-Studenten targeten.</b></div>
+  </div>
+</div>
+</div>
+
+<!-- S9: HYPOTHESEN — interaktiv -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s9">
+<div class="si">
+  <div class="tag">09 / Wachstumshypothesen</div>
+  <div class="h1">Hypothesen zur <span>Prozessverbesserung</span></div>
+  <div style="font-size:13px;color:var(--a2);font-weight:600;margin-bottom:12px">Hauptpotenzial — Steigerung der Konversionsrate C1 ohne Erhöhung des Werbebudgets</div>
+  <div class="ctrl" style="margin-bottom:12px">
+    <div class="ctrl-title">Hypothesen — grüne Zone = bestätigt, rote = A/B-Test nötig. Regler verschieben</div>
+    <div class="g3" style="gap:10px">
+      <!-- HYP 1: statistically confirmed -->
+      <div>
+        <div style="font-weight:600;font-size:12px;color:var(--a);margin-bottom:2px">№1 Anruf ≤60 Min — Schneller Kontakt</div>
+        <div style="font-size:10px;color:var(--mu);margin-bottom:5px">χ²-Test p=0,0247 · Logregression coef=-0,053 · Statistisch bestätigt</div>
+        <div class="ctrl-row" style="gap:6px"><div class="ctrl-lbl" style="min-width:auto;font-size:10px">C1-Zuwachs (%)</div><input type="range" class="ctrl-slider" id="h1-eff" min="2" max="25" step="1" value="19" oninput="updHypMarker(1,this.value)"><div class="ctrl-val" id="h1-v">19%</div></div>
+        <div style="position:relative;height:8px;border-radius:4px;overflow:hidden;margin-top:4px">
+          <div style="position:absolute;left:0;width:30%;height:100%;background:rgba(255,68,102,.4)"></div>
+          <div style="position:absolute;left:30%;width:70%;height:100%;background:rgba(15,212,122,.4)"></div>
+          <div id="h1-mkr" style="position:absolute;top:0;width:3px;height:100%;background:#fff;border-radius:2px;transition:left .3s;left:75%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;margin-top:2px;color:var(--mu)"><span style="color:var(--r)">✗ nicht bestätigt</span><span>Grenze 7%</span><span style="color:var(--g)">✓ bestätigt</span></div>
+        <div id="h1-badge" style="text-align:center;font-size:10px;font-weight:600;color:var(--g);margin-top:4px">✓ Statistisch bestätigt</div>
+      </div>
+      <!-- HYP 2: needs A/B test -->
+      <div>
+        <div style="font-weight:600;font-size:12px;color:var(--a2);margin-bottom:2px">№2 E-Mail mit Kursprogramm in 5 Min</div>
+        <div style="font-size:10px;color:var(--mu);margin-bottom:5px">Hypothese · A/B-Test 2 Wochen erforderlich · p&lt;0,05</div>
+        <div class="ctrl-row" style="gap:6px"><div class="ctrl-lbl" style="min-width:auto;font-size:10px">C1-Zuwachs (%)</div><input type="range" class="ctrl-slider" id="h2-eff" min="2" max="25" step="1" value="10" oninput="updHypMarker(2,this.value)"><div class="ctrl-val" id="h2-v">10%</div></div>
+        <div style="position:relative;height:8px;border-radius:4px;overflow:hidden;margin-top:4px">
+          <div style="position:absolute;left:0;width:47%;height:100%;background:rgba(255,68,102,.4)"></div>
+          <div style="position:absolute;left:47%;width:53%;height:100%;background:rgba(15,212,122,.4)"></div>
+          <div id="h2-mkr" style="position:absolute;top:0;width:3px;height:100%;background:#fff;border-radius:2px;transition:left .3s;left:35%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;margin-top:2px;color:var(--mu)"><span style="color:var(--r)">✗ nicht bestätigt</span><span>Grenze 12%</span><span style="color:var(--g)">✓ bestätigt</span></div>
+        <div id="h2-badge" style="text-align:center;font-size:10px;font-weight:600;color:var(--r);margin-top:4px">✗ Noch nicht bestätigt — A/B-Test nötig</div>
+      </div>
+      <!-- HYP 3: needs A/B test -->
+      <div>
+        <div style="font-weight:600;font-size:12px;color:var(--a3);margin-bottom:2px">№3 SMS 1 Std. nach verpasstem Anruf</div>
+        <div style="font-size:10px;color:var(--mu);margin-bottom:5px">Hypothese · A/B-Test 2 Wochen erforderlich · p&lt;0,05</div>
+        <div class="ctrl-row" style="gap:6px"><div class="ctrl-lbl" style="min-width:auto;font-size:10px">C1-Zuwachs (%)</div><input type="range" class="ctrl-slider" id="h3-eff" min="2" max="25" step="1" value="10" oninput="updHypMarker(3,this.value)"><div class="ctrl-val" id="h3-v">10%</div></div>
+        <div style="position:relative;height:8px;border-radius:4px;overflow:hidden;margin-top:4px">
+          <div style="position:absolute;left:0;width:47%;height:100%;background:rgba(255,68,102,.4)"></div>
+          <div style="position:absolute;left:47%;width:53%;height:100%;background:rgba(15,212,122,.4)"></div>
+          <div id="h3-mkr" style="position:absolute;top:0;width:3px;height:100%;background:#fff;border-radius:2px;transition:left .3s;left:35%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;margin-top:2px;color:var(--mu)"><span style="color:var(--r)">✗ nicht bestätigt</span><span>Grenze 12%</span><span style="color:var(--g)">✓ bestätigt</span></div>
+        <div id="h3-badge" style="text-align:center;font-size:10px;font-weight:600;color:var(--r);margin-top:4px">✗ Noch nicht bestätigt — A/B-Test nötig</div>
+      </div>
+    </div>
+  </div>
+  <div class="g2" style="flex:1">
+    <div class="card ct"><div class="stl">Umsatzprognose nach Hypothesen</div><div class="cw" style="height:190px"><canvas id="hypChart"></canvas></div></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="res-box">
+        <div class="res-item"><div class="res-n" id="hyp-base">€3.80M</div><div class="res-l">Baseline</div></div>
+        <div class="res-item"><div class="res-n" id="hyp-new">€4.67M</div><div class="res-l">Nach Hypothesen</div></div>
+        <div class="res-item"><div class="res-n" id="hyp-delta" style="color:var(--a3)">+€810K</div><div class="res-l">Umsatz-Zuwachs</div></div>
+      </div>
+      <div class="card ct g" style="padding:13px">
+        <div class="stl">Hypothesen-Details</div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--li)">
+          <div>⚡ <b style="color:var(--a)">№1:</b> Anruf ≤60 Min → <span id="h1-pay" style="color:var(--g)">+83 Zahlungen</span></div>
+          <div>📧 <b style="color:var(--a2)">№2:</b> E-Mail+Video 5 Min → <span id="h2-pay" style="color:var(--g)">+83 Zahlungen</span></div>
+          <div>📱 <b style="color:var(--a3)">№3:</b> SMS nach 1 Std. → <span id="h3-pay" style="color:var(--g)">+83 Zahlungen</span></div>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--b);font-size:10px;color:var(--mu)">
+          A/B-Test: 2 Wochen &nbsp;·&nbsp; 50%/50% Split &nbsp;·&nbsp; p&lt;0,05 &nbsp;·&nbsp; ROI: 97:1
+        </div>
+      </div>
+      <div class="card ct r" style="padding:11px;font-size:11px;color:var(--li)">
+        <div class="stl">Prüfmethode — A/B-Test</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px">
+          <div style="font-size:10px;color:var(--li)">Kontrolle: <b style="color:var(--text)">50%</b> Leads, aktueller Prozess</div>
+          <div style="font-size:10px;color:var(--li)">Test: <b style="color:var(--text)">50%</b> Leads + Hypothese</div>
+          <div style="font-size:10px;color:var(--li)">Kennzahl: <b style="color:var(--a)">C1</b> Konversionsrate</div>
+          <div style="font-size:10px;color:var(--li)">Dauer: <b style="color:var(--text)">14 Tage</b> · p&lt;0,05</div>
+          <div style="font-size:10px;color:var(--li)">Stichprobe: <b style="color:var(--g)">≈2.800</b> pro Gruppe</div>
+          <div style="font-size:10px;color:var(--li)">MDE: <b style="color:var(--text)">0,7pp</b> (32,23%→5,16%)</div>
+        </div>
+        <div style="border-top:1px solid var(--b);padding-top:6px;margin-bottom:5px;font-size:9.5px;font-weight:600;color:var(--a2);letter-spacing:.5px;text-transform:uppercase">Was kann hinzugefügt werden:</div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <div style="font-size:9.5px;color:var(--li)"><b style="color:var(--a)">AA-Test</b> — Validierung der Randomisierung vor dem Test</div>
+          <div style="font-size:9.5px;color:var(--li)"><b style="color:var(--a)">SRM-Prüfung</b> — sicherstellen dass Split genau 50/50 ist</div>
+          <div style="font-size:9.5px;color:var(--li)"><b style="color:var(--a)">Sequential Testing</b> — Fortschritt ohne p-Hacking überwachen</div>
+          <div style="font-size:9.5px;color:var(--li)"><b style="color:var(--a)">Novelty Effect</b> — Woche 1 vs Woche 2 vergleichen</div>
+          <div style="font-size:9.5px;color:var(--li)"><b style="color:var(--a)">Segm. Analyse</b> — Berlin/B1/Organic separat</div>
+          <div style="font-size:9.5px;color:var(--li)"><b style="color:var(--a)">Cohort 30/60 Tage</b> — Leads zahlen nicht sofort</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- S9B: A/B-TEST — ERGEBNISSE -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s9b">
+<div class="si">
+  <div class="tag">12 / A/B-Tests</div>
+  <div class="h1">Ergebnisse der <span>Hypothesentests</span></div>
+
+  <div class="g3" style="gap:12px;margin-bottom:14px">
+
+    <!-- H1: CONFIRMED -->
+    <div class="card" style="border:2px solid var(--g);padding:14px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:12px;font-weight:700;color:var(--a)">Hypothese №1</div>
+        <div style="background:rgba(15,212,122,.2);border:1px solid var(--g);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:700;color:var(--g)">✅ BESTÄTIGT</div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--text)">Anruf ≤60 Min erhöht die Konversion</div>
+      <div style="font-size:10.5px;color:var(--mu);font-style:italic">Methode: retrospektiver χ²-Test auf historischen Daten</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10.5px;margin-top:4px">
+        <tr style="border-bottom:1px solid var(--b)">
+          <td style="padding:4px 6px;color:var(--mu)">Gruppe</td>
+          <td style="padding:4px 6px;color:var(--mu)">Leads</td>
+          <td style="padding:4px 6px;color:var(--mu)">Zahlungen</td>
+          <td style="padding:4px 6px;color:var(--mu)">C1</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 6px;color:var(--li)">Fast ≤60 Min</td>
+          <td style="padding:4px 6px;color:var(--text)">2 104</td>
+          <td style="padding:4px 6px;color:var(--text)">133</td>
+          <td style="padding:4px 6px;color:var(--g);font-weight:700">6.33%</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 6px;color:var(--li)">Slow >60 Min</td>
+          <td style="padding:4px 6px;color:var(--text)">16 444</td>
+          <td style="padding:4px 6px;color:var(--text)">695</td>
+          <td style="padding:4px 6px;color:var(--r);font-weight:700">5.30%</td>
+        </tr>
+      </table>
+      <div style="background:rgba(15,212,122,.08);border-radius:7px;padding:7px 10px;font-size:10.5px;color:var(--li)">
+        <b style="color:var(--g)">p-value = 0,0247</b> &lt; 0,05 · Unterschied <b style="color:var(--g)">+1,03pp (+19,4%)</b><br>
+        <b>Fazit:</b> H₀ verworfen. Hypothese statistisch bestätigt.<br>
+        <b style="color:var(--a3)">Aktion:</b> KPI „SLA ≤ 60 Min" sofort einführen → +€98K
+      </div>
+    </div>
+
+    <!-- H2: PLANNED -->
+    <div class="card" style="border:2px solid var(--a3);padding:14px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:12px;font-weight:700;color:var(--a2)">Hypothese №2</div>
+        <div style="background:rgba(245,158,11,.15);border:1px solid var(--a3);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:700;color:var(--a3)">🔄 GEPLANT</div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--text)">E-Mail mit Kursprogramm 5 Min nach Registrierung</div>
+      <div style="font-size:10.5px;color:var(--mu);font-style:italic">Methode: prospektiver A/B-Test zweier Anteile</div>
+      <div style="font-size:10.5px;color:var(--li);display:flex;flex-direction:column;gap:5px;margin-top:4px">
+        <div>H₀: C1_control = C1_treatment</div>
+        <div>H₁: C1_treatment &gt; C1_control</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="background:var(--bg2);border-radius:5px;padding:2px 7px">Split: 50/50</span>
+          <span style="background:var(--bg2);border-radius:5px;padding:2px 7px">n = 2.800/Gr</span>
+          <span style="background:var(--bg2);border-radius:5px;padding:2px 7px">14 Tage</span>
+          <span style="background:var(--bg2);border-radius:5px;padding:2px 7px">α = 0.05</span>
+          <span style="background:var(--bg2);border-radius:5px;padding:2px 7px">MDE = 0.7pp</span>
+        </div>
+      </div>
+      <div style="background:rgba(245,158,11,.08);border-radius:7px;padding:7px 10px;font-size:10.5px;color:var(--li)">
+        <b style="color:var(--a3)">Wenn bestätigt:</b> E-Mail automatisieren → +10% C1 → +€82K<br>
+        <b style="color:var(--r)">Wenn nicht bestätigt:</b> anderen E-Mail-Inhalt oder Timing testen<br>
+        <b style="color:var(--mu)">Status:</b> wartet auf Start. CRM-E-Mail-Integration erforderlich.
+      </div>
+    </div>
+
+    <!-- H3: PLANNED -->
+    <div class="card" style="border:2px solid var(--a3);padding:14px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:12px;font-weight:700;color:var(--a2)">Hypothese №3</div>
+        <div style="background:rgba(245,158,11,.15);border:1px solid var(--a3);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:700;color:var(--a3)">🔄 GEPLANT</div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--text)">SMS 1 Stunde nach verpasstem Anruf</div>
+      <div style="font-size:10.5px;color:var(--mu);font-style:italic">Methode: prospektiver A/B-Test zweier Anteile</div>
+      <div style="font-size:10.5px;color:var(--li);display:flex;flex-direction:column;gap:5px;margin-top:4px">
+        <div>H₀: C1_control = C1_treatment</div>
+        <div>H₁: C1_treatment &gt; C1_control</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="background:var(--bg2);border-radius:5px;padding:2px 7px">Split: 50/50</span>
+          <span style="background:var(--bg2);border-radius:5px;padding:2px 7px">n = 2.800/Gr</span>
+          <span style="background:var(--bg2);border-radius:5px;padding:2px 7px">14 Tage</span>
+          <span style="background:var(--bg2);border-radius:5px;padding:2px 7px">α = 0.05</span>
+          <span style="background:var(--bg2);border-radius:5px;padding:2px 7px">MDE = 0.7pp</span>
+        </div>
+      </div>
+      <div style="background:rgba(245,158,11,.08);border-radius:7px;padding:7px 10px;font-size:10.5px;color:var(--li)">
+        <b style="color:var(--a3)">Wenn bestätigt:</b> SMS-Automatisierung einrichten → +10% C1 → +€82K<br>
+        <b style="color:var(--r)">Wenn nicht bestätigt:</b> Sendezeitpunkt prüfen (30 Min? 2 Std?)<br>
+        <b style="color:var(--mu)">Wichtig:</b> Tests №2 und №3 dürfen nicht gleichzeitig starten — Effekte vermischen sich.
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM ROW -->
+  <div class="g2" style="gap:12px">
+    <div class="card ct g" style="padding:13px">
+      <div class="stl">Testergebnisse</div>
+      <div style="font-size:12px;color:var(--li);line-height:1.7">
+        <b style="color:var(--g)">Bestätigt:</b> 1 von 3 (Hypothese №1 — χ²-Test)<br>
+        <b style="color:var(--a3)">Geplant:</b> 2 von 3 (Hypothesen №2 und №3)<br>
+        Prognostizierter Zuwachs bei Bestätigung aller drei:<br>
+        <b style="color:var(--a3)">€3,80M → €4,61M (+€810K)</b> ohne Budgeterhöhung
+      </div>
+    </div>
+    <div class="card ct r" style="padding:13px">
+      <div class="stl">Interpretationsregeln</div>
+      <div style="font-size:11.5px;color:var(--li);line-height:1.7">
+        <b style="color:var(--g)">p &lt; 0,05</b> → Hypothese bestätigt, umsetzen<br>
+        <b style="color:var(--r)">p ≥ 0,05</b> → kein Nachweis, nicht umsetzen<br>
+        <b style="color:var(--a)">Prüfungen:</b> AA-Test → SRM (50/50?) → Ergebnis<br>
+        <b style="color:var(--a2)">Korrelation ≠ Kausalität</b> — Saisonalität beachten
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- S10: PHYSIKALISCHE MARKTGRENZE -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s10">
+<div class="si" style="padding-top:40px;padding-bottom:80px">
+  <div class="tag">11 / Schlüssel-Insight</div>
+  <div class="h1">Physikalische <span>Marktgrenze</span></div>
+
+  <!-- KEY INSIGHT TEXT -->
+  <div style="background:rgba(61,184,255,.07);border:1px solid rgba(61,184,255,.2);border-radius:12px;padding:14px 20px;margin-bottom:14px;font-size:13px;line-height:1.85;color:var(--li)">
+    Es muss berücksichtigt werden, dass <b style="color:var(--text)">nicht jeder Mensch in die IT-Branche möchte</b>. Stellen wir uns vor, in einer Stadt mit <b style="color:var(--a)">100.000 Einwohnern</b> gibt es maximal <b style="color:var(--a)">1.000 potenzielle Kunden</b>, die ihr Leben mit IT verbinden möchten. Die restlichen <b style="color:var(--text)">99.000 Personen</b> sind unerreichbar.
+    <b style="color:var(--r)">Mehr Werbung vergrößert den Markt nicht</b>, sondern erhöht nur die Budgetbelastung.<br>
+    <span style="background:rgba(15,212,122,.1);border-radius:6px;padding:3px 10px;display:inline-block;margin-top:6px">
+      <b style="color:var(--g)">Regel:</b> Wenn <b style="color:var(--g)">Konversion ↓ aber Kundenzahl ↑</b> — Markt wächst, alles gut.
+      Wenn <b style="color:var(--r)">Kunden ↓</b> — sofort handeln.
+    </span>
+  </div>
+
+  <div class="g2" style="gap:14px;margin-bottom:14px">
+    <!-- CITY FUNNEL -->
+    <div class="card ct" style="padding:14px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--a);margin-bottom:10px">Echter Markttrichter — Stadt auswählen</div>
+      <!-- City tabs -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="city-tabs">
+        <button onclick="showCity('berlin')"   id="cb-berlin"   class="city-btn on">Berlin</button>
+        <button onclick="showCity('muenchen')" id="cb-muenchen" class="city-btn">München</button>
+        <button onclick="showCity('hamburg')"  id="cb-hamburg"  class="city-btn">Hamburg</button>
+        <button onclick="showCity('nuernberg')"id="cb-nuernberg"class="city-btn">Nürnberg</button>
+        <button onclick="showCity('koeln')"    id="cb-koeln"    class="city-btn">Köln</button>
+      </div>
+      <!-- Bars -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--li)">🏙 Einwohnerzahl</span>
+            <b id="val-pop" style="font-family:'JetBrains Mono',monospace;color:var(--text)">3.7M</b>
+          </div>
+          <div style="height:10px;background:var(--bg3);border-radius:5px;overflow:hidden">
+            <div id="bar-pop" style="width:100%;height:100%;background:rgba(61,184,255,.35);border-radius:5px;transition:width .5s ease"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--li)">🎯 IT-Interesse (≈1%)</span>
+            <b id="val-it" style="font-family:'JetBrains Mono',monospace;color:var(--a)">≈37K</b>
+          </div>
+          <div style="height:10px;background:var(--bg3);border-radius:5px;overflow:hidden">
+            <div id="bar-it" style="width:1%;height:100%;background:var(--a);border-radius:5px;transition:width .5s ease"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--li)">📥 Unsere Leads aus dieser Stadt</span>
+            <b id="val-leads" style="font-family:'JetBrains Mono',monospace;color:var(--a2)">182</b>
+          </div>
+          <div style="height:10px;background:var(--bg3);border-radius:5px;overflow:hidden">
+            <div id="bar-leads" style="width:0%;height:100%;background:var(--a2);border-radius:5px;transition:width .5s ease"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--li)">💰 Kunden (Zahlungen)</span>
+            <b id="val-clients" style="font-family:'JetBrains Mono',monospace;color:var(--g)">78</b>
+          </div>
+          <div style="height:10px;background:var(--bg3);border-radius:5px;overflow:hidden">
+            <div id="bar-clients" style="width:0%;height:100%;background:var(--g);border-radius:5px;transition:width .5s ease"></div>
+          </div>
+        </div>
+      </div>
+      <!-- City stats -->
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <div style="flex:1;background:var(--bg3);border-radius:7px;padding:8px 10px;text-align:center">
+          <div id="val-cov" style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--a3)">0.0021%</div>
+          <div style="font-size:8px;color:var(--mu);text-transform:uppercase;letter-spacing:1px">Marktdurchdringung</div>
+        </div>
+        <div style="flex:1;background:var(--bg3);border-radius:7px;padding:8px 10px;text-align:center">
+          <div id="val-conv" style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--g)">42.9%</div>
+          <div style="font-size:8px;color:var(--mu);text-transform:uppercase;letter-spacing:1px">Konversion</div>
+        </div>
+        <div style="flex:1;background:var(--bg3);border-radius:7px;padding:8px 10px;text-align:center">
+          <div id="val-rev" style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--a)">€187K</div>
+          <div style="font-size:8px;color:var(--mu);text-transform:uppercase;letter-spacing:1px">Umsatz</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECHTS: WACHSTUMSSTRATEGIEN + LEADS vs KUNDEN -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card ct p" style="padding:14px">
+        <div class="stl">Leads ≠ Kunden — richtige Kennzahl beachten</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:12px;margin-top:6px">
+          <div style="background:var(--bg3);border-radius:7px;padding:9px 12px;border-left:3px solid var(--r)">
+            <b style="color:var(--r)">✗ Falsch:</b><span style="color:var(--li)"> nur Leads beachten — Lead kann falsche Stadt nennen</span>
+          </div>
+          <div style="background:var(--bg3);border-radius:7px;padding:9px 12px;border-left:3px solid var(--g)">
+            <b style="color:var(--g)">✓ Richtig:</b><span style="color:var(--li)"> auf <b>Kunden</b> achten — sie haben bezahlt, Daten verlässlich</span>
+          </div>
+        </div>
+      </div>
+      <div class="card ct am" style="padding:14px">
+        <div class="stl">So erweitern Sie die physikalische Grenze</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--li);margin-top:4px">
+          <div>→ <b style="color:var(--a)">Neue Städte</b> — kleine Städte ohne Präsenz (≈800+ Städte)</div>
+          <div>→ <b style="color:var(--a2)">Neue Zielgruppe</b> — B2/C1-Niveau, derzeit 94% Level of Deutsch leer</div>
+          <div>→ <b style="color:var(--g)">Organic / SEO</b> — erreicht, wer Werbung noch nicht gesehen hat</div>
+          <div>→ <b style="color:var(--a3)">Unternehmensverkäufe</b> — Firmen schicken Mitarbeiter in Gruppen</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="slide" id="s11">
+<div class="si">
+  <div class="tag">10 / Empfehlungen</div>
+  <div class="h1">Empfehlungen &amp; <span>Aktionsplan</span></div>
+  <div style="font-size:12.5px;color:var(--li);margin-bottom:14px">Auf Basis der 12-Monats-Datenanalyse — konkrete Maßnahmen mit prognostiziertem Finanzeffekt. Implementierungs-ROI: <b style="color:var(--a3)">97:1</b>.</div>
+  <div class="g2" style="gap:12px;margin-bottom:12px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="card ct" style="padding:13px"><div style="font-size:13px;font-weight:600;margin-bottom:7px;color:var(--a)">🎯 Marketing</div><div style="font-size:12px;color:var(--li);display:flex;flex-direction:column;gap:3px">
+        <div>→ <b style="color:var(--g)">SEO-Spezialisten einstellen:</b> Organic liefert 9,7% Konversion — bester Kanal — skaliert über Google-Ranking, nicht Budget. Ziel: Top-3 bei Google für „IT-Kurse Deutschland"</div>
+        <div>→ <b>€13K</b> von TikTok/Bloggers (ROMI −%) auf Webinar (ROMI +800%) umleiten — Prognose: +18 Zahlungen/Monat</div>
+        <div>→ SEO-Inhalte veröffentlichen: Absolventen-Cases, IT-Artikel für Deutschland — kostenloser Traffic ohne Werbebudget</div>
+        <div style="color:var(--g);font-style:italic;margin-top:3px">Konversionssteigerung ohne Budgeterhöhung</div>
+      </div></div>
+      <div class="card ct g" style="padding:13px"><div style="font-size:13px;font-weight:600;margin-bottom:7px;color:var(--g)">🔄 Funnel</div><div style="font-size:12px;color:var(--li);display:flex;flex-direction:column;gap:3px"><div>→ Aktive Arbeit in den ersten 14 Tagen</div><div>→ Nach 21 Tagen — Lead neu qualifizieren</div><div>→ Mehr Kontaktversuche in den ersten Tagen</div><div style="color:var(--g);font-style:italic;margin-top:3px">Schnellerer Abschluss (Median: 5 Tage)</div></div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="card ct r" style="padding:13px"><div style="font-size:13px;font-weight:600;margin-bottom:7px;color:var(--r)">📞 Vertrieb</div><div style="font-size:12px;color:var(--li);display:flex;flex-direction:column;gap:3px"><div>→ KPI: SLA ≤ 60 Min + Konversionsrate C1</div><div>→ Automatische Lead-Verteilung im CRM</div><div>→ Untersuchen, bei welchen Deals Oliver Taylor Deal Owner ist (147 Verkäufe bei 19 Kontakten) — er schließt fremde Leads ab, sein Abschluss-Skript könnte getrennt von der Leadgenerierung repliziert werden</div><div style="color:var(--g);font-style:italic;margin-top:3px">+10–20% mehr Zahlungen</div></div></div>
+      <div class="card ct am" style="padding:13px"><div style="font-size:13px;font-weight:600;margin-bottom:7px;color:var(--a3)">📦 Produkte &amp; Daten</div><div style="font-size:12px;color:var(--li);display:flex;flex-direction:column;gap:3px"><div>→ Digital Marketing skalieren (ROMI 2.009%, 55,3% der Käufer)</div><div>→ Reservation → Installment (Ratenzahlung)</div><div>→ Werbung auf B1-Niveau targeten</div><div>→ <b style="color:var(--r)">CRM-Disziplin:</b> Manager müssen Payment Type (2,6%) und Level of Deutsch (6,7%) ausfüllen — kritisch niedrige Vollständigkeit</div></div></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px">
+    <div class="kpi" style="flex:1;text-align:center;padding:12px"><div class="kn" style="font-size:22px;color:var(--g)">+€420K</div><div class="kl">Zusätzliche Marge/Quartal</div></div>
+    <div class="kpi" style="flex:1;text-align:center;padding:12px"><div class="kn" style="font-size:22px">97:1</div><div class="kl">Implementierungs-ROI</div></div>
+    <div class="kpi" style="flex:1;text-align:center;padding:12px;--a:var(--a2)"><div class="kn" style="font-size:22px">2 Wo.</div><div class="kl">A/B-Testdauer</div></div>
+    <div class="kpi" style="flex:1;text-align:center;padding:12px;--a:var(--a3)"><div class="kn" style="font-size:22px">B1</div><div class="kl">Zielniveau</div></div>
+    <div class="kpi" style="flex:1;text-align:center;padding:12px;--a:var(--r)"><div class="kn" style="font-size:22px">≤60</div><div class="kl">Min — SLA</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- S12: FAZIT -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="slide" id="s12">
+<div class="si" style="padding-top:28px;padding-bottom:60px">
+  <div class="tag" style="text-align:center">Fazit · Aufgaben-Checkliste</div>
+  <div class="h1" style="text-align:center;font-size:clamp(30px,4vw,54px)">Projekt-<span>ergebnisse</span></div>
+
+  <!-- AUFGABEN-CHECKLISTE -->
+  <div class="card" style="padding:14px;margin-bottom:14px;max-width:820px;align-self:center;width:100%;border:1px solid var(--b)">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--g);margin-bottom:10px">✔ Aufgaben-Checkliste</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <div class="chip-check">✓ Duplikate &amp; veraltete Spalten entfernt</div>
+      <div class="chip-check">✓ Fehlende Werte verarbeitet</div>
+      <div class="chip-check">✓ Datentypen: Daten, Zahlen, ID→str</div>
+      <div class="chip-check">✓ Deskriptive Statistik (Mittel, Median, Modus)</div>
+      <div class="chip-check">✓ Zeitreihenanalyse (Lead-Dynamik)</div>
+      <div class="chip-check">✓ Kampagnen- &amp; Kanaleffizienz (ROMI)</div>
+      <div class="chip-check">✓ Manager-Analyse (Konversion, Volumen)</div>
+      <div class="chip-check">✓ Produkt- &amp; Zahlungstyp-Analyse</div>
+      <div class="chip-check">✓ Geografische Analyse (Städte &amp; CEFR)</div>
+      <div class="chip-check">✓ Unit-Ökonomie nach Produkten</div>
+      <div class="chip-check">✓ Metrik-Baum (4 Ebenen)</div>
+      <div class="chip-check">✓ Hypothesen + χ²-Test + A/B-Test-Plan</div>
+      <div class="chip-check">✓ HTML-Dashboard — interaktiv</div>
+      <div class="chip-check">✓ Bereinigter Datensatz (ETL-Pipeline)</div>
+    </div>
+  </div>
+  <div style="background:var(--bb);border:1px solid var(--bbd);border-radius:12px;padding:18px;margin-bottom:16px;max-width:680px;align-self:center;text-align:center">
+    <div style="font-size:15px;color:var(--text);line-height:1.7">
+      Das Unternehmen ist <b style="color:var(--a)">conversion-limited</b>, nicht traffic-limited.<br>
+      Potenzial: €29,7M (Offer Total). Realisiert: €3,80M (12,8%).<br>
+      <b style="color:var(--g)">Drei Hypothesen → +€810K Umsatz ohne Budgeterhöhung.</b>
+    </div>
+  </div>
+  <div class="g2" style="max-width:820px;align-self:center;width:100%;margin-bottom:16px;gap:10px">
+    <div class="card ct g" style="padding:14px"><div style="font-size:13px;font-weight:600;margin-bottom:6px">Qualität > Quantität</div><div style="font-size:12px;color:var(--li);line-height:1.6">Organic: 9,7% Konversion — kostenloser Suchtraffic, skaliert über SEO. Webinar: 8,5% — erfordert Organisationskosten, aber ROMI vielfach höher als Bezahlwerbung.</div></div>
+    <div class="card ct p" style="padding:14px"><div style="font-size:13px;font-weight:600;margin-bottom:6px">Digital Marketing — Marktführer</div><div style="font-size:12px;color:var(--li);line-height:1.6">ROMI 2.009% · 1.451 Käufer (55,3%) · AOV €1.202. Dieses Produkt hat Skalierungspriorität.</div></div>
+    <div class="card ct am" style="padding:14px"><div style="font-size:13px;font-weight:600;margin-bottom:6px">SLA — Schlüssel-KPI</div><div style="font-size:12px;color:var(--li);line-height:1.6">Anruf ≤60 Min: Konversion 6,33% vs 5,30% (p=0,0247). Statistisch nachgewiesen.</div></div>
+    <div class="card ct r" style="padding:14px"><div style="font-size:13px;font-weight:600;margin-bottom:6px">Daten — Grundlage der Entscheidungen</div><div style="font-size:12px;color:var(--li);line-height:1.6">4 Quellen, 12 Monate, 136K Zeilen. ETL-Pipeline reproduzierbar und dokumentiert.</div></div>
+  </div>
+  <div style="text-align:center;padding-top:14px;border-top:1px solid var(--b)">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px">Vielen Dank für Ihre Aufmerksamkeit!</div>
+    <div style="font-size:12px;color:var(--mu);margin-top:5px">Serhiy Hromyko &nbsp;·&nbsp; Juni 2026 &nbsp;·&nbsp; Bereit für Fragen 🙋</div>
+  <div style="margin-top:16px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+    <div style="background:rgba(61,184,255,.08);border:1px solid rgba(61,184,255,.2);border-radius:8px;padding:8px 16px;font-size:11px;color:var(--a)">
+      📎 GitHub Pages — als Demo veröffentlichen
+    </div>
+    <div style="background:rgba(15,212,122,.08);border:1px solid rgba(15,212,122,.2);border-radius:8px;padding:8px 16px;font-size:11px;color:var(--g)">
+      ⚠ Hinweis: Korrelation ≠ Kausalität
+    </div>
+    <div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:8px;padding:8px 16px;font-size:11px;color:var(--a2)">
+      📊 LinkedIn-Profil — Link hinzufügen
+    </div>
+  </div>
+  </div>
+</div>
+</div>
+
+</div><!-- /mn -->
+
+<!-- NAV -->
+<div id="nav">
+  <button class="nb" id="pBtn" >‹</button>
+  <div class="ndots" id="ndots"></div>
+  <button class="nb" id="nBtn" >›</button>
+  <div id="ctr">1/14</div>
+</div>
+
+
+<div id="dbg" style="position:fixed;top:3px;right:3px;background:rgba(255,0,0,.7);color:#fff;font-size:10px;padding:3px 6px;border-radius:4px;z-index:9999;display:none"></div>
+<script>
+function dbg(msg){var el=document.getElementById('dbg');if(el){el.style.display='block';el.textContent=msg;}}
+window.onerror=function(msg,src,line,col,err){dbg('ERR L'+line+': '+msg.slice(0,40));return false;};
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════
+// SLIDES CONFIG
+// ══════════════════════════════════════════════════════
+const SL=[
+  {id:'s0',  lbl:'Deckblatt'},
+  {id:'stoc',lbl:'Inhalt'},
+  {id:'s1',  lbl:'Datenbereinigung'},
+  {id:'smtr',lbl:'Metrik-Baum'},
+  {id:'s2', lbl:'Kennzahlen'},
+  {id:'s3', lbl:'Verkaufstrichter'},
+  {id:'s4', lbl:'Kanäle &amp; Kampagnen'},
+  {id:'s5', lbl:'Unit-Ökonomie'},
+  {id:'s6', lbl:'Manager &amp; Vertrieb'},
+  {id:'s7', lbl:'Reaktionsgeschwindigkeit'},
+  {id:'s7b',lbl:'Manager &amp; Konversion'},
+  {id:'s8', lbl:'Städte &amp; Sprache'},
+  {id:'s9', lbl:'Wachstumshypothesen'},
+  {id:'s9b',lbl:'A/B-Ergebnisse'},
+  {id:'s10',lbl:'Physikalische Grenze'},
+  {id:'s11',lbl:'Empfehlungen'},
+  {id:'s12',lbl:'Fazit'},
+];
+const N = SL.length;
+let cur = 0;
+const INIT = new Set();
+const BASE_REV=3797211, BASE_B=2623, AOV=1199, APC=1.0;
+
+// ── NAVIGATION ──
+function goTo(n) {
+  const prev = document.getElementById(SL[cur].id);
+  if (prev) prev.classList.remove('on');
+  cur = Math.max(0, Math.min(N-1, n));
+  const next = document.getElementById(SL[cur].id);
+  if (next) { next.classList.add('on'); next.scrollTop = 0; }
+  // dots
+  document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('on', i===cur));
+  // sidebar
+  document.querySelectorAll('.sbi').forEach(el => {
+    const span = el.querySelector('span:last-child');
+    if (!span) return;
+    const idx = SL.findIndex(s => s.lbl === span.textContent);
+    el.classList.toggle('on', idx === cur);
+  });
+  // progress + counter
+  const prog = document.getElementById('prog');
+  if (prog) prog.style.width = ((cur+1)/N*100) + '%';
+  const ctr = document.getElementById('ctr');
+  if (ctr) ctr.textContent = (cur+1) + '/' + N;
+  const pBtn = document.getElementById('pBtn');
+  const nBtn = document.getElementById('nBtn');
+  if (pBtn) pBtn.disabled = cur === 0;
+  if (nBtn) nBtn.disabled = cur === N-1;
+  // init slide once
+  const delay = cur===11 ? 400 : 80; // map needs more time
+  if (!INIT.has(cur)) {
+    INIT.add(cur);
+    setTimeout(() => { try { initSlide(cur); } catch(e) { console.warn('initSlide',cur,e); } }, delay);
+  } else if (cur===11) {
+    // Always invalidate map size when returning to geo slide
+    setTimeout(()=>{ if(typeof _geoMap!=='undefined' && _geoMap) _geoMap.invalidateSize(); }, 150);
+    setTimeout(()=>{ if(typeof _geoMap!=='undefined' && _geoMap) _geoMap.invalidateSize(); }, 500);
+  }
+}
+window.goTo = goTo;
+
+// ── BUILD SIDEBAR & DOTS ──
+try {
+const SB_GROUPS=[
+  {label:'Einführung',           items:[0,1]},
+  {label:'Daten &amp; Bereinigung', items:[2]},
+  {label:'Analytik',             items:[3,4,5,6,7,8,9]},
+  {label:'Produktanalytik',      items:[10,11,12,13,14]},
+];
+const sbl = document.getElementById('sbl');
+SB_GROUPS.forEach(grp => {
+  const g = document.createElement('div');
+  g.className='sb-grp'; g.textContent=grp.label; sbl.appendChild(g);
+  grp.items.forEach(i => {
+    const el = document.createElement('div');
+    el.className = 'sbi' + (i===0?' on':'');
+    el.innerHTML = `<span class="sbi-n">${String(i+1).padStart(2,'0')}</span><span>${SL[i].lbl}</span>`;
+    el.onclick = () => { goTo(i); toggleSb(false); };
+    sbl.appendChild(el);
+  });
+});
+const nd = document.getElementById('ndots');
+SL.forEach((_,i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===0?' on':'');
+  d.onclick = () => goTo(i);
+  nd.appendChild(d);
+});
+
+// ── BIND NAV BUTTONS ──
+document.getElementById('pBtn').onclick = () => goTo(cur-1);
+document.getElementById('nBtn').onclick = () => goTo(cur+1);
+document.addEventListener('keydown', e => {
+// NAV auto-hide: erscheint bei Mausbewegung, verschwindet nach 2,5 Sek
+let navTimer;
+const navEl = document.getElementById('nav');
+document.addEventListener('mousemove', () => {
+  if(navEl){ navEl.style.opacity='0.9'; clearTimeout(navTimer); navTimer = setTimeout(()=>{ navEl.style.opacity='0'; }, 2500); }
+});
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();goTo(cur+1);}
+  if(e.key==='ArrowLeft'){e.preventDefault();goTo(cur-1);}
+});
+let sx=0;
+document.addEventListener('touchstart',e=>sx=e.touches[0].clientX);
+document.addEventListener('touchend',e=>{const d=sx-e.changedTouches[0].clientX;if(d>50)goTo(cur+1);if(d<-50)goTo(cur-1);});
+
+function toggleSb(f){
+  const sbOpen = f !== undefined ? f : !document.getElementById('sb').classList.contains('open');
+  document.getElementById('sb').classList.toggle('open', sbOpen);
+  document.getElementById('mn').classList.toggle('sh', sbOpen);
+}
+document.getElementById('tog').onclick = () => toggleSb();
+document.getElementById('prog').style.width = (1/N*100)+'%';
+document.getElementById('ctr').textContent = '1/'+N; document.getElementById('pBtn').disabled=true;
+document.getElementById('pBtn').disabled = true;
+
+
+} catch(err) { console.error('NAV SETUP ERROR:', err); }
+
+// ── CLEANING TABS ──
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    btn.closest('.si').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    btn.closest('.si').querySelectorAll('.tab-content').forEach(c2 => {
+      c2.classList.remove('on');
+      if(c2.id===tab) c2.classList.add('on');
+    });
+  });
+});
+
+// ── CHART HELPERS ──
+Chart.defaults.color='#6b7fa3';
+Chart.defaults.font.family='Inter';
+Chart.defaults.font.size=11;
+const GRC='rgba(255,255,255,0.05)';
+const CA='#3db8ff',CA2='#8b5cf6',CA3='#f59e0b',CG='#0fd47a',CR='#ff4466';
+const charts={};
+function mk(id,type,data,opts){
+  const c=document.getElementById(id); if(!c) return null;
+  if(charts[id]) charts[id].destroy();
+  charts[id]=new Chart(c,{type,data,options:{responsive:true,maintainAspectRatio:false,...opts}});
+  return charts[id];
+}
+function fmtM(v){if(v>=1e6)return '€'+(v/1e6).toFixed(2)+'M';if(v>=1000)return '€'+Math.round(v/1000)+'K';return '€'+Math.round(v);}
+
+// ── HEATMAP (built once) ──
+const HM=[
+  {city:'Berlin',   vals:[173,94.8,178.2,164,4.4]},
+  {city:'Hamburg',  vals:[61,96.7,61.3,59,2.9]},
+  {city:'Nürnberg', vals:[45,93.3,45.2,42,1.8]},
+  {city:'Leipzig',  vals:[45,97.8,43.7,44,7.1]},
+  {city:'München',  vals:[null,50,36.4,42.9,null]},
+  {city:'Düsseldorf',vals:[null,0,21.4,25,null]},
+  {city:'Dresden',  vals:[null,66.7,50,33.3,null]},
+  {city:'Köln',     vals:[null,66.7,25,50,null]},
+];
+const hmapBody=document.getElementById('hmapBody');
+if(hmapBody){
+  HM.forEach(row=>{
+    const tr=document.createElement('tr');
+    let html=`<td>${row.city}</td>`;
+    row.vals.forEach((v,ci)=>{
+      const isB1=ci===2;
+      let bg='transparent',cl='#6b7fa3';
+      if(v!==null){const t=v/100;bg=`rgba(${Math.round(30+t*10)},${Math.round(80+t*120)},${Math.round(100+t*100)},${0.15+t*0.55})`;cl=t>0.4?'#fff':'#a4b8d0';}
+      html+=`<td style="background:${bg};color:${cl};${isB1?'border:1px solid rgba(61,184,255,.3);':''}">${v!==null?v+'%':'—'}</td>`;
+    });
+    tr.innerHTML=html; hmapBody.appendChild(tr);
+  });
+}
+
+// ── S2: KPI — GLOBAL updKpi ──
+function updKpi(){
+  const ua  = +(document.getElementById('ua-sl') ||{value:18548}).value;
+  const c1  = +(document.getElementById('c1-sl') ||{value:4.46}).value / 100;
+  const aov = +(document.getElementById('aov-sl')||{value:1202}).value;
+  const apc = +(document.getElementById('apc-sl')||{value:1.0}).value;
+  const ac  = +(document.getElementById('ac-sl') ||{value:149523}).value;
+
+  const B    = Math.round(ua * c1);
+  const Rev  = B * aov * apc;
+  const CM   = Rev - ac;
+  const romi = ac > 0 ? CM / ac * 100 : 0;
+  const cac  = B  > 0 ? ac / B       : 0;
+  const ltv  = aov * apc;
+
+  function set(id, v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+
+  // Slider labels
+  set('ua-v',  ua.toLocaleString('ru'));
+  set('c1-v',  (c1*100).toFixed(2)+'%');
+  set('aov-v', '€'+aov.toLocaleString('ru'));
+  set('apc-v', apc.toFixed(1));
+  set('ac-v',  '€'+Math.round(ac/1000)+'K');
+
+  // Result box
+  set('r-buyers', B.toLocaleString('ru'));
+  set('r-rev',    fmtM(Rev));
+  set('r-cm',     fmtM(CM));
+  set('r-romi',   Math.round(romi).toLocaleString('ru')+'%');
+  set('r-cac',    '€'+Math.round(cac));
+  set('r-ltv',    '€'+Math.round(ltv).toLocaleString('ru'));
+
+  // KPI cards
+  set('kpi-rev',   fmtM(Rev));
+  set('kpi-romi',  Math.round(romi).toLocaleString('ru')+'%');
+  set('kpi-c1',    (c1*100).toFixed(2)+'%');
+  set('kpi-ltv',   '€'+Math.round(ltv).toLocaleString('ru'));
+  set('kpi-cac',   '€'+Math.round(cac));
+  set('kpi-aov',   '€'+aov.toLocaleString('ru'));
+  set('kpi-paid',  B.toLocaleString('ru'));
+  if(cac>0) set('kpi-ratio', (ltv/cac).toFixed(1)+'x');
+
+  // Mini bars
+  const rev1=B*aov, rev2=B*aov*(apc-1);
+  const maxV=Math.max(rev1,rev2,ac,1);
+  set('kpi-b1',fmtM(rev1)); set('kpi-b2',fmtM(rev2)); set('kpi-b3',fmtM(ac));
+  function setW(id,v){const el=document.getElementById(id);if(el)el.style.width=Math.round(v/maxV*100)+'%';}
+  setW('kbar-b1',rev1); setW('kbar-b2',rev2); setW('kbar-b3',ac);
+
+  // ── DONUT: show Rev Month1 / Repeat Rev / Ad Cost (proportions change with sliders!) ──
+  const revM1 = B * aov;
+  const revM2 = B * aov * (apc - 1);
+  const revSum = revM1 + revM2 + ac;         // total pie size
+
+  // Text labels
+  const p1 = revM1/revSum*100, p2 = revM2/revSum*100, pAC = ac/revSum*100;
+  function s(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+  s('revTotal', fmtM(Rev));
+  s('rev-m1',   fmtM(revM1));   s('pct-m1',  p1.toFixed(1)+'%');
+  s('rev-rep',  fmtM(revM2));   s('pct-rep', p2.toFixed(1)+'%');
+  s('rev-ac',   fmtM(ac));     s('pct-ac',  pAC.toFixed(1)+'%');
+  // Product split (labels only)
+  s('rev-dm',  fmtM(Math.round(Rev*0.584)));
+  s('rev-ux',  fmtM(Math.round(Rev*0.293)));
+  s('rev-web', fmtM(Math.round(Rev*0.123)));
+
+  // SVG arcs via setAttribute — circumference = 2π×72 = 452.39
+  const CIRC = 452.39;
+  const G = 1.5;  // gap between segments
+  const a1 = document.getElementById('arc-rev1');
+  const a2 = document.getElementById('arc-rev2');
+  const a3 = document.getElementById('arc-cost');
+  if(a1){
+    const l1 = Math.max(0, p1/100*CIRC - G);
+    const l2 = Math.max(0, p2/100*CIRC - G);
+    const l3 = Math.max(0, pAC/100*CIRC - G);
+    a1.setAttribute('stroke-dasharray',  l1+' '+(CIRC-l1));
+    a1.setAttribute('stroke-dashoffset', '0');
+    a2.setAttribute('stroke-dasharray',  l2+' '+(CIRC-l2));
+    a2.setAttribute('stroke-dashoffset', -(p1/100*CIRC)+'');
+    a3.setAttribute('stroke-dasharray',  l3+' '+(CIRC-l3));
+    a3.setAttribute('stroke-dashoffset', -((p1+p2)/100*CIRC)+'');
+  }
+
+  // ── STAGE BARS: absolute heights vs UA (not B/828 ratio — so bars visually change) ──
+  const UA_val = ua;  // use current UA as the scale denominator
+  // Stage counts absolute (based on real funnel proportions applied to current B)
+  const STAGES = [
+    {lbl:'Lost',      n:Math.max(1, Math.round(15743*B/828)), col:'#ff4466'},
+    {lbl:'Call Del.', n:Math.max(0, Math.round(2248*B/828)),  col:'#3db8ff'},
+    {lbl:'Reg.Web.',  n:Math.max(0, Math.round(2072*B/828)),  col:'#3db8ff'},
+    {lbl:'Payment',   n:Math.max(0, B),                       col:'#0fd47a'},
+    {lbl:'Wait Pay',  n:Math.max(0, Math.round(325*B/828)),   col:'#f59e0b'},
+    {lbl:'Qualif.',   n:Math.max(0, Math.round(128*B/828)),   col:'#8b5cf6'},
+  ];
+  // Use UA_val as the fixed max so bars change height as UA changes
+  const maxH = Math.max(UA_val * 0.85, ...STAGES.map(s=>s.n), 1);
+
+  const barsD = document.getElementById('stageBars');
+  const lblsD = document.getElementById('stageXlbls');
+  if(barsD){
+    barsD.innerHTML=''; lblsD.innerHTML='';
+    STAGES.forEach(st=>{
+      const pct = (st.n / maxH * 100).toFixed(1);
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%';
+      const vl = document.createElement('div');
+      vl.style.cssText = 'font-family:JetBrains Mono,monospace;font-size:9px;color:'+st.col+';flex-shrink:0;white-space:nowrap';
+      vl.textContent = st.n >= 1000 ? Math.round(st.n/1000)+'K' : st.n;
+      const sp = document.createElement('div'); sp.style.flex='1';
+      const bar = document.createElement('div');
+      bar.style.cssText = 'width:85%;border-radius:4px 4px 0 0;background:'+st.col+';height:'+pct+'%';
+      wrap.appendChild(vl); wrap.appendChild(sp); wrap.appendChild(bar);
+      barsD.appendChild(wrap);
+      const xl = document.createElement('div');
+      xl.style.cssText = 'flex:1;text-align:center;font-size:9px;color:#6b7fa3;line-height:1.2;word-break:break-word';
+      xl.textContent = st.lbl;
+      lblsD.appendChild(xl);
+    });
+    s('stage-paid', B.toLocaleString('ru'));
+    s('stage-conv', (c1*100).toFixed(2)+'%');
+    s('stage-lost', Math.max(1, Math.round(15743*B/828)).toLocaleString('ru'));
+  }
+}
+
+function initS2(){
+  updKpi();
+}
+
+// Attach listeners immediately (elements exist in DOM from page load)
+document.addEventListener('DOMContentLoaded',()=>{
+  // Pre-init heatmap (S8 geo slide)
+  setTimeout(()=>{ if(typeof showCity!=='undefined') showCity('berlin'); }, 400);
+  // Pre-warm slides 2,3 so they're ready
+  setTimeout(()=>{
+    [2,3].forEach(i=>{ if(!INIT.has(i)){INIT.add(i);try{initSlide(i);}catch(e){}} });
+  }, 800);
+  ['ua-sl','c1-sl','aov-sl','apc-sl','ac-sl'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('input', ()=>{ try{ updKpi(); }catch(e){ console.error('updKpi',e); } });
+  });
+  try{ updKpi(); }catch(e){ console.error('updKpi init error:',e); }
+});
+
+
+// ── S3: FUNNEL ──
+const FCOLS=['linear-gradient(90deg,#1e3a6e,#16305a)','linear-gradient(90deg,#1a4a80,#163d68)','linear-gradient(90deg,#175a70,#124860)','linear-gradient(90deg,#7a3f10,#5a2e08)','linear-gradient(90deg,#8b1a2a,#6a1020)'];
+const FLBLS=['📥 Leads','📞 Erstkontakt','💬 Qualifizierung','📋 Angebot','💰 Zahlung'];
+function buildFunnel(){
+  const UA=+document.getElementById('f-ua').value,c1=+document.getElementById('f-c1').value/100;
+  const c2=+document.getElementById('f-c2').value/100,c3=+document.getElementById('f-c3').value/100,c4=+document.getElementById('f-c4').value/100;
+  ['f-ua-v','f-c1-v','f-c2-v','f-c3-v','f-c4-v'].forEach((id,i)=>{
+    document.getElementById(id).textContent=[UA.toLocaleString('ru'),Math.round(c1*100)+'%',Math.round(c2*100)+'%',Math.round(c3*100)+'%',Math.round(c4*100)+'%'][i];
+  });
+  const vals=[UA,Math.round(UA*c1),Math.round(UA*c1*c2),Math.round(UA*c1*c2*c3),Math.round(UA*c1*c2*c3*c4)];
+  const pcts=['100%',Math.round(c1*100)+'%',Math.round(c2*100)+'%',Math.round(c3*100)+'%',Math.round(c4*100)+'%'];
+  const fd=document.getElementById('funnel');fd.innerHTML='';
+  vals.forEach((v,i)=>{
+    const el=document.createElement('div');el.className='fun-s';
+    el.style.cssText=`width:${Math.max(18,(v/vals[0])*100)}%;background:${FCOLS[i]};`;
+    el.innerHTML=`<span>${FLBLS[i]}</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px">${v.toLocaleString('ru')} <span style="opacity:.6;font-size:9px">${pcts[i]}</span></span>`;
+    fd.appendChild(el);
+  });
+  document.getElementById('f-out').textContent=vals[4].toLocaleString('ru');
+  document.getElementById('f-lost').textContent=(vals[0]-vals[4]).toLocaleString('ru');
+  document.getElementById('f-cr').textContent=(vals[4]/vals[0]*100).toFixed(2)+'%';
+  if(charts['funnelBar']){charts['funnelBar'].data.datasets[0].data=vals;charts['funnelBar'].update();}
+}
+function initS3(){
+  mk('funnelBar','bar',{labels:FLBLS,datasets:[{data:[18548,14283,9000,2340,858],backgroundColor:[CA,CA2,CG,CA3,CR],borderRadius:4}]},
+    {plugins:{legend:{display:false}},scales:{x:{grid:{color:GRC},ticks:{font:{size:9}}},y:{grid:{color:GRC},ticks:{callback:v=>v>=1000?Math.round(v/1000)+'K':v}}}});
+  mk('lostMini','bar',{
+    labels:["Doesn't Answer","Changed Decision","Non target","Stopped Answering","Invalid number","Expensive"],
+    datasets:[{data:[4074,2122,1736,1556,1480,614],backgroundColor:[CR,CA2,CA,CA3,CR+'aa',CG+'aa'],borderRadius:3}]
+  },{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:GRC},ticks:{callback:v=>v>=1000?Math.round(v/1000)+'K':v}},y:{grid:{color:'transparent'},ticks:{font:{size:9}}}}});
+  ['f-ua','f-c1','f-c2','f-c3','f-c4'].forEach(id=>document.getElementById(id).addEventListener('input',buildFunnel));
+  buildFunnel();
+}
+
+// ── S4: CHANNELS ──
+const CHANS=[
+  {name:'Facebook Ads',leads:4850,paid:202,c1:4.2,spend:33755,revenue:916700,color:CA},
+  {name:'Google Ads',leads:4226,paid:173,c1:4.1,spend:57799,revenue:742950,color:CA2},
+  {name:'Organic',leads:2590,paid:147,c1:5.7,spend:0,revenue:565461,color:CG},
+  {name:'TikTok Ads',leads:2051,paid:56,c1:2.7,spend:11986,revenue:312900,color:CA3},
+  {name:'SMM',leads:1730,paid:91,c1:5.3,spend:7270,revenue:425350,color:'#22d3ee'},
+  {name:'YouTube Ads',leads:1657,paid:53,c1:3.2,spend:14633,revenue:249700,color:'#f43f5e'},
+  {name:'CRM',leads:1656,paid:24,c1:1.4,spend:0,revenue:85200,color:'#a78bfa'},
+  {name:'Bloggers',leads:1089,paid:39,c1:3.6,spend:13439,revenue:188301,color:'#fb923c'},
+  {name:'Telegram',leads:1001,paid:40,c1:4.0,spend:6860,revenue:232150,color:'#818cf8'},
+  {name:'Webinar',leads:379,paid:26,c1:6.9,spend:2874,revenue:132850,color:'#34d399'},
+];
+function initS4(){
+  const inp=document.getElementById('chan-inputs');
+  CHANS.forEach((ch,i)=>{
+    const row=document.createElement('div');row.className='ctrl-row';
+    row.innerHTML=`<div class="ctrl-lbl" style="color:${ch.color};min-width:110px">${ch.name}</div><input type="range" class="ctrl-slider" id="ch-sl-${i}" min="0" max="80000" step="100" value="${ch.spend}"><div class="ctrl-val" id="ch-v-${i}">€${Math.round(ch.spend/1000)||0}K</div>`;
+    inp.appendChild(row);
+    document.getElementById(`ch-sl-${i}`).addEventListener('input',updateChans);
+  });
+  mk('chanRomi','bar',{labels:CHANS.map(c=>c.name),datasets:[{data:CHANS.map(c=>c.spend>0?Math.round((c.revenue-c.spend)/c.spend*100):9999),backgroundColor:CHANS.map(c=>c.color),borderRadius:4}]},
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:GRC},ticks:{callback:v=>v>=9000?'∞':Math.round(v/100)+'x'}},y:{grid:{color:'transparent'},ticks:{font:{size:10}}}}});
+  mk('chanScatter','scatter',{datasets:CHANS.map(c=>({label:c.name,data:[{x:c.spend,y:c.leads}],backgroundColor:c.color,pointRadius:7,pointHoverRadius:9}))},
+    {plugins:{legend:{position:'right',labels:{boxWidth:8,padding:5,font:{size:9}}}},scales:{x:{grid:{color:GRC},title:{display:true,text:'Ausgaben (€)',color:'#6b7fa3'}},y:{grid:{color:GRC},title:{display:true,text:'Leads',color:'#6b7fa3'}}}});
+  updateChans();
+}
+function updateChans(){
+  let tot=0;
+  CHANS.forEach((ch,i)=>{const v=+document.getElementById(`ch-sl-${i}`).value;ch.spend=v;tot+=v;document.getElementById(`ch-v-${i}`).textContent=v===0?'€0':'€'+Math.round(v/1000)+'K';});
+  document.getElementById('tot-budget').textContent='€'+tot.toLocaleString('ru');
+  document.getElementById('budget-warn').style.display=tot>149523*1.5?'inline':'none';
+  if(charts['chanRomi']){charts['chanRomi'].data.datasets[0].data=CHANS.map(c=>c.spend>0?Math.round((c.revenue-c.spend)/c.spend*100):9999);charts['chanRomi'].update();}
+  if(charts['chanScatter']){charts['chanScatter'].data.datasets.forEach((ds,i)=>{ds.data=[{x:CHANS[i].spend,y:CHANS[i].leads}];});charts['chanScatter'].update();}
+}
+
+// ── S5: UNIT ECONOMICS ──
+const SCENS=[
+  {lbl:'C1 +10%',cm:4100446,romi:2742},{lbl:'AOV +10%',cm:4249970,romi:2742},
+  {lbl:'APC +10%',cm:4249970,romi:2742},{lbl:'UA +10%',cm:4085494,romi:2484},
+  {lbl:'CPA -10%',cm:3729038,romi:2771},{lbl:'Baseline',cm:3714086,romi:2484},
+];
+let selScen=null;
+function initS5(){
+  const UE_INPUTS=['ue-cac','ue-arppu','ue-margin','ue-c1','ue-ua'];
+
+  function calcUE(){
+    const cac    = +(document.getElementById('ue-cac')   ||{value:181}).value;
+    const arppu  = +(document.getElementById('ue-arppu') ||{value:4666}).value;
+    const margin = +(document.getElementById('ue-margin')||{value:96}).value / 100;
+    const c1     = +(document.getElementById('ue-c1')    ||{value:4.46}).value / 100;
+    const ua     = +(document.getElementById('ue-ua')    ||{value:18548}).value;
+
+    function set(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+    set('ue-cac-v',   '€'+cac.toLocaleString('ru'));
+    set('ue-arppu-v', '€'+arppu.toLocaleString('ru'));
+    set('ue-margin-v', Math.round(margin*100)+'%');
+    set('ue-c1-v',    c1>=0.01?(c1*100).toFixed(2)+'%':'<1%');
+    set('ue-ua-v',    ua.toLocaleString('ru'));
+
+    const ampu        = c1 * arppu * margin;
+    const profitUnit  = -cac + ampu;
+    const profitTotal = profitUnit * ua;
+    const ltvCac      = arppu / cac;
+
+    set('ue-ampu',        '€'+Math.round(ampu).toLocaleString('ru'));
+    set('ue-profit-unit', (profitUnit>=0?'+':'')+' €'+Math.round(profitUnit).toLocaleString('ru'));
+    set('ue-profit-total',(profitTotal>=0?'+':'')+' €'+Math.round(profitTotal/1000)+'K');
+    set('ue-ltv-cac',     ltvCac.toFixed(1)+'×');
+
+    const verdEl = document.getElementById('ue-verdict');
+    if(verdEl){
+      if(profitUnit>0){
+        verdEl.className='box box-g';
+        verdEl.innerHTML='✅ Profitabel: LTV > CAC ('+ltvCac.toFixed(1)+'×)';
+      } else {
+        verdEl.className='box box-r';
+        verdEl.innerHTML='❌ Verlustbringend: LTV < CAC — jeder Kunde kostet mehr als er bringt';
+      }
+    }
+
+    // color profit
+    const pu=document.getElementById('ue-profit-unit');
+    if(pu) pu.style.color=profitUnit>=0?'var(--g)':'var(--r)';
+    const pt=document.getElementById('ue-profit-total');
+    if(pt) pt.style.color=profitTotal>=0?'var(--g)':'var(--r)';
+  }
+
+  UE_INPUTS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('input', calcUE);
+  });
+  calcUE();
+
+  // scenario analysis (existing)
+  const scbc=document.getElementById('scen-btns');
+  if(scbc){
+    const SCENS=[
+      {lbl:'C1 +10%',cm:4100446,romi:2742},{lbl:'AOV +10%',cm:4249970,romi:2742},
+      {lbl:'APC +10%',cm:4249970,romi:2742},{lbl:'UA +10%',cm:4085494,romi:2484},
+      {lbl:'CPA -10%',cm:3729038,romi:2771},{lbl:'Baseline',cm:3714086,romi:2484},
+    ];
+    let selScen=null;
+    SCENS.forEach((s,i)=>{
+      const b=document.createElement('button');b.textContent=s.lbl;
+      b.style.cssText=`background:${i===5?'var(--bg3)':'rgba(61,184,255,.08)'};border:1px solid rgba(61,184,255,${i===5?.1:.25});color:${i===5?'var(--mu)':'var(--a)'};border-radius:6px;padding:5px 10px;cursor:pointer;font-size:10px;font-family:Inter;transition:all .2s`;
+      b.onclick=()=>{
+        selScen=i;
+        scbc.querySelectorAll('button').forEach((bb,j)=>bb.style.background=j===i?'rgba(61,184,255,.18)':'rgba(61,184,255,.06)');
+        const base=SCENS[5],sel=SCENS[i];
+        function set(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+        set('scen-cm',    fmtM(base.cm));
+        set('scen-new',   fmtM(sel.cm));
+        set('scen-delta', (sel.cm>base.cm?'+':'')+fmtM(sel.cm-base.cm));
+        set('scen-romi2', sel.romi.toLocaleString('ru')+'%');
+      };
+      scbc.appendChild(b);
+    });
+  }
+}
+
+// ── Manager data (real values from CSV) ──
+// Verifiziert aus dem Skript: Kontakte=Contact Owner Name, Verkäufe=Deal Owner Name.
+// Konversion = Verkäufe/Kontakte — korrekt NUR wenn Contact Owner = Deal Owner (meiste Manager).
+// Oliver Taylor vom Konversions-Ranking ausgeschlossen — Verkäufe(147) >> Kontakte(19), da er fremde Leads abschließt (anderes Feld).
+const MGR_DATA=[
+  {name:'Cara Iverson',   contacts:880,  deals:101, conv:11.48, rev:684400, color:'#f87171'},
+  {name:'Ulysses Adams',  contacts:1809, deals:535, conv:29.57, rev:510450, color:'#0fd47a'},
+  {name:'Charlie Davis',  contacts:2018, deals:415, conv:20.56, rev:413450, color:'#3db8ff'},
+  {name:'Julia Nelson',   contacts:1769, deals:375, conv:21.20, rev:355960, color:'#8b5cf6'},
+  {name:'Victor Barnes',  contacts:966,  deals:246, conv:25.47, rev:338900, color:'#22d3ee'},
+  {name:'Paula Underwood',contacts:1486, deals:316, conv:21.27, rev:313950, color:'#f59e0b'},
+  {name:'Ben Hall',       contacts:1037, deals:240, conv:23.14, rev:237200, color:'#fb923c'},
+  {name:'Quincy Vincent', contacts:1415, deals:200, conv:14.13, rev:218601, color:'#818cf8'},
+  {name:'Nina Scott',     contacts:1148, deals:210, conv:18.29, rev:201150, color:'#34d399'},
+  {name:'Jane Smith',     contacts:754,  deals:135, conv:17.90, rev:130550, color:'#c084fc'},
+  // Oliver Taylor — strukturelle Anomalie, kein gewöhnlicher Manager. Siehe Karte "Anomalie" unten.
+  {name:'Oliver Taylor ⚠',contacts:19,   deals:147, conv:null,  rev:144150, color:'#ff4466'},
+];
+
+function initS6(){
+  // Oliver aus Bubble-Chart ausgeschlossen (conv=null — nicht vergleichbar), aber separat gelistet
+  const bubbleData = MGR_DATA.filter(m=>m.conv!==null);
+  mk('mgrBubble','bubble',{datasets:bubbleData.map(m=>({label:m.name,data:[{x:m.deals,y:m.conv,r:Math.max(7,Math.sqrt(m.rev/22000))}],backgroundColor:m.color+'bb'}))},
+    {plugins:{legend:{position:'right',labels:{boxWidth:7,padding:4,font:{size:9}}}},scales:{x:{grid:{color:GRC},title:{display:true,text:'Verkäufe (Deals)',color:'#6b7fa3'}},y:{grid:{color:GRC},title:{display:true,text:'Konversion %',color:'#6b7fa3'}}}});
+  mk('campChart','bar',{
+    labels:['brand_search_eng_DE','performancemax','youtube_shorts','12.07.23wide','02.07.23wide'],
+    datasets:[{data:[9.32,4.35,3.32,3.14,5.51],backgroundColor:[CG,CA,CA2,CA3,CR],borderRadius:3}]
+  },{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:GRC},ticks:{callback:v=>v+'%'}},y:{grid:{color:'transparent'},ticks:{font:{size:9}}}}});
+  document.getElementById('mgr-filter').addEventListener('input',function(){
+    const v=+this.value;document.getElementById('mgr-fv').textContent=v+'%';
+    const f=bubbleData.filter(m=>m.conv>=v);
+    if(charts['mgrBubble']){charts['mgrBubble'].data.datasets=f.map(m=>({label:m.name,data:[{x:m.deals,y:m.conv,r:Math.max(7,Math.sqrt(m.rev/22000))}],backgroundColor:m.color+'bb'}));charts['mgrBubble'].update();}
+  });
+}
+
+// ── S7: SLA ──
+function initS7(){
+  mk('weekChart','line',{
+    labels:['Jul','Aug','Sep','Okt','Nov','Dez','Jan','Feb','Mär','Apr','Mai','Jun'],
+    datasets:[
+      {label:'Deals/Woche',data:[280,310,340,370,320,290,400,440,480,510,570,460],borderColor:CA,backgroundColor:CA+'15',tension:.4,fill:true,pointRadius:3},
+      {label:'Calls÷10',data:[190,215,230,255,235,205,285,315,345,365,395,325],borderColor:CG,backgroundColor:CG+'10',tension:.4,fill:true,pointRadius:3}
+    ]
+  },{plugins:{legend:{labels:{boxWidth:8,padding:8}}},scales:{x:{grid:{color:GRC}},y:{grid:{color:GRC}}}});
+  mk('slaChart','bar',{
+    labels:['<5 Min','5-15 Min','15-60 Min','1-4 Std','4-24 Std','>24 Std'],
+    datasets:[{label:'Fast',data:[8.1,7.2,5.8,4.2,3.1,2.0],backgroundColor:CG,borderRadius:3},{label:'Slow',data:[0,0,0,5.9,5.1,3.8],backgroundColor:CR,borderRadius:3}]
+  },{plugins:{legend:{labels:{boxWidth:8,padding:8}}},scales:{x:{grid:{color:GRC}},y:{grid:{color:GRC},ticks:{callback:v=>v+'%'}}}});
+  const updSla=()=>{
+    const t=+document.getElementById('sla-t').value,c1=+document.getElementById('sla-c1').value/100;
+    const ua=+document.getElementById('sla-ua').value,aov=+document.getElementById('sla-aov').value;
+    document.getElementById('sla-tv').textContent=t+' Min';
+    document.getElementById('sla-c1v').textContent=(c1*100).toFixed(2)+'%';
+    document.getElementById('sla-uav').textContent=ua.toLocaleString('ru');
+    document.getElementById('sla-aovv').textContent='€'+aov;
+    const mult=t<=30?1.194:t<=60?1.15:t<=120?1.08:1.0;
+    const curP=Math.round(ua*c1),newP=Math.round(ua*c1*mult);
+    const delta=(newP-curP)*aov*3.88;
+    document.getElementById('sla-cur').textContent=curP.toLocaleString('ru');
+    document.getElementById('sla-new').textContent=newP.toLocaleString('ru');
+    document.getElementById('sla-delta').textContent='+'+fmtM(delta);
+  };
+  ['sla-t','sla-c1','sla-ua','sla-aov'].forEach(id=>document.getElementById(id).addEventListener('input',updSla));
+  updSla();
+}
+
+// ── S8: GEO ──
+// global map ref so layer switcher works
+let _geoMap = null;
+let _tileLayer = null;
+
+const TILES = {
+  satellite: {
+    url: 'https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+    sub: '0123', label:'🛰 Satellit'
+  },
+  hybrid: {
+    url: 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    sub: '0123', label:'🗺 Hybrid'
+  },
+  streets: {
+    url: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+    sub: '0123', label:'📍 Karte'
+  }
+};
+let _currentLayer = 'satellite';
+
+function setLayer(name){
+  if(!_geoMap) return;
+  if(_tileLayer) _geoMap.removeLayer(_tileLayer);
+  const t = TILES[name];
+  _tileLayer = L.tileLayer(t.url, {subdomains: t.sub, maxZoom:19, attribution:''}).addTo(_geoMap);
+  _currentLayer = name;
+  // update button styles
+  Object.keys(TILES).forEach(k=>{
+    const btn = document.getElementById('btn-'+k);
+    if(!btn) return;
+    if(k===name){
+      btn.style.background='rgba(61,184,255,.18)';
+      btn.style.borderColor='var(--a)';
+      btn.style.color='var(--a)';
+    } else {
+      btn.style.background='transparent';
+      btn.style.borderColor='rgba(255,255,255,.12)';
+      btn.style.color='#6b7fa3';
+    }
+  });
+}
+
+function convColor(conv){
+  if(conv>=50) return '#0fd47a';
+  if(conv>=35) return '#3db8ff';
+  if(conv>=20) return '#f59e0b';
+  return '#ff4466';
+}
+
+function showCityPanel(d){
+  document.getElementById('panel-placeholder').style.display='none';
+  document.getElementById('panel-city').style.display='block';
+  document.getElementById('panel-name').textContent = d.city;
+  document.getElementById('panel-total').textContent = d.total.toLocaleString('ru');
+  document.getElementById('panel-paid').textContent = d.paid.toLocaleString('ru');
+  const col = convColor(d.conv);
+  document.getElementById('panel-conv').textContent = d.conv+'%';
+  document.getElementById('panel-conv').style.color = col;
+  document.getElementById('panel-convfill').style.width = Math.min(100,d.conv)+'%';
+  document.getElementById('panel-convfill').style.background = col;
+  document.getElementById('panel-rev').textContent = '€'+d.revenue.toLocaleString('ru');
+  const hover = document.getElementById('map-hover');
+  if(hover) hover.textContent = d.city+': '+d.paid+' Zahl. · '+d.conv+'% Konv. · €'+d.revenue.toLocaleString('de');
+}
+
+function initS7b(){
+  // Monthly data: managers active, leads, paid, conversion
+  // Derived from real CRM data: 12 months Jul23-Jun24
+  const MO=['Jul','Aug','Sep','Okt','Nov','Dez','Jan','Feb','Mär','Apr','Mai','Jun'];
+  const LEADS=[1180,1320,1450,1610,1340,1100,1780,1960,2100,2280,2550,1870];
+  const PAID =[  53,  59,  65,  68,  52,  44,  79,  87,  94, 102,  80,  45];
+  const CONV = LEADS.map((l,i)=>(PAID[i]/l*100));
+  const MGR  =[   6,   7,   7,   8,   8,   6,   9,  10,  11,  12,  12,   4];
+
+  mk('tenureChart','bar',{
+    labels:MO,
+    datasets:[
+      {type:'bar',   label:'Leads',       data:LEADS,
+        backgroundColor:'rgba(255,255,255,0.07)',yAxisID:'y1',borderRadius:3},
+      {type:'line',  label:'Konversion %', data:CONV.map(v=>+v.toFixed(2)),
+        borderColor:'#f59e0b',backgroundColor:'#f59e0b22',
+        pointBackgroundColor:'#f59e0b',pointRadius:5,tension:.35,
+        fill:true,yAxisID:'y',borderWidth:2.5}
+    ]
+  },{
+    plugins:{legend:{labels:{boxWidth:10,padding:10}}},
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,.05)'}},
+      y:{grid:{color:'rgba(255,255,255,.05)'},
+         title:{display:true,text:'Konversion %',color:'#6b7fa3'},
+         ticks:{callback:v=>v.toFixed(1)+'%'}},
+      y1:{position:'right',grid:{display:false},
+          title:{display:true,text:'Leads',color:'#6b7fa3'},
+          ticks:{callback:v=>v>=1000?Math.round(v/1000)+'K':v}}
+    }
+  });
+
+  mk('tenurePaidChart','line',{
+    labels:MO,
+    datasets:[
+      {label:'Zahlungen (Ist)',data:PAID,
+        borderColor:'#0fd47a',backgroundColor:'#0fd47a18',
+        pointBackgroundColor:'#0fd47a',pointRadius:5,tension:.35,fill:true,
+        yAxisID:'y'},
+      {label:'Manager',data:MGR,
+        borderColor:'#8b5cf6',backgroundColor:'transparent',
+        borderDash:[5,3],pointBackgroundColor:'#8b5cf6',
+        pointRadius:4,tension:.3,yAxisID:'y1'}
+    ]
+  },{
+    plugins:{
+      legend:{labels:{boxWidth:10,padding:10}},
+      annotation:{} // highlight peak
+    },
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,.05)'}},
+      y:{grid:{color:'rgba(255,255,255,.05)'},
+         title:{display:true,text:'Zahlungen',color:'#6b7fa3'}},
+      y1:{position:'right',grid:{display:false},
+          title:{display:true,text:'Manager',color:'#6b7fa3'},
+          min:0,max:16}
+    }
+  });
+}
+
+function initS8(){
+  // City bar chart
+  mk('cityChart','bar',{
+    labels:['Berlin','München','Hamburg','Leipzig','Nürnberg','Köln','Dresden','Frankfurt','Wien','Düsseldorf'],
+    datasets:[
+      {label:'Umsatz €',data:[187150,73100,62250,43650,45200,38100,24500,26900,14900,37900],
+        backgroundColor:[CA,...Array(9).fill(CA2)],borderRadius:4,yAxisID:'y'},
+      {label:'Konversion %',data:[42.9,36.5,35.5,40.0,20.0,36.0,32.1,25.9,66.7,21.2],
+        backgroundColor:CA3+'88',borderRadius:4,yAxisID:'y1'},
+      {label:'Zahl./100K Einw.',data:[2.08,1.80,1.16,2.90,1.73,0.83,1.61,0.91,4.21,1.09],
+        backgroundColor:'rgba(139,92,246,0.55)',borderRadius:4,yAxisID:'y2',type:'bar'}
+    ]
+  },{plugins:{legend:{labels:{boxWidth:8,padding:8}}},scales:{
+    x:{grid:{color:GRC},ticks:{font:{size:9}}},
+    y:{grid:{color:GRC},ticks:{callback:v=>'€'+Math.round(v/1000)+'K'}},
+    y1:{position:'right',grid:{display:false},ticks:{callback:v=>v+'%'}},
+    y2:{position:'right',grid:{display:false},ticks:{callback:v=>v.toFixed(1)},display:false}
+  }});
+
+  // CEFR chart
+  mk('cefrChart','bar',{
+    labels:['A0','A1','A2','B1','B2','C1','C2'],
+    datasets:[
+      {label:'Konversion %',data:[50,40,32.1,36.9,22.2,60,33.3],
+        backgroundColor:[CA2,CA,CA3,CG,CA3+'88',CG+'cc',CA2+'88'],borderRadius:4,yAxisID:'y'},
+      {label:'Deals',data:[2,5,28,366,90,5,3],
+        backgroundColor:'rgba(255,255,255,0.09)',borderRadius:4,yAxisID:'y1'}
+    ]
+  },{plugins:{legend:{labels:{boxWidth:8,padding:6}}},scales:{
+    x:{grid:{color:GRC}},
+    y:{grid:{color:GRC},ticks:{callback:v=>v+'%'}},
+    y1:{position:'right',grid:{display:false}}
+  }});
+
+  // City data from CSV
+  const CITY_DATA=[
+    {city:'Berlin',lat:52.52,lon:13.405,total:173,paid:164,revenue:178150,conv:94.8},
+    {city:'München',lat:48.137,lon:11.575,total:74,paid:27,revenue:73100,conv:36.5},
+    {city:'Hamburg',lat:53.551,lon:9.993,total:62,paid:22,revenue:62250,conv:35.5},
+    {city:'Leipzig',lat:51.340,lon:12.374,total:45,paid:18,revenue:43650,conv:40.0},
+    {city:'Nürnberg',lat:49.452,lon:11.077,total:45,paid:9,revenue:45200,conv:20.0},
+    {city:'Düsseldorf',lat:51.227,lon:6.773,total:33,paid:7,revenue:37900,conv:21.2},
+    {city:'Dresden',lat:51.050,lon:13.737,total:28,paid:9,revenue:24500,conv:32.1},
+    {city:'Frankfurt',lat:50.110,lon:8.682,total:27,paid:7,revenue:26900,conv:25.9},
+    {city:'Dortmund',lat:51.514,lon:7.468,total:26,paid:4,revenue:28350,conv:15.4},
+    {city:'Köln',lat:50.938,lon:6.960,total:25,paid:9,revenue:38100,conv:36.0},
+    {city:'Stuttgart',lat:48.775,lon:9.182,total:20,paid:2,revenue:20600,conv:10.0},
+    {city:'Hannover',lat:52.375,lon:9.732,total:19,paid:4,revenue:18800,conv:21.1},
+    {city:'Duisburg',lat:51.435,lon:6.762,total:19,paid:5,revenue:17300,conv:26.3},
+    {city:'Bremen',lat:53.075,lon:8.807,total:17,paid:5,revenue:14300,conv:29.4},
+    {city:'Essen',lat:51.457,lon:7.011,total:16,paid:6,revenue:26000,conv:37.5},
+    {city:'Bochum',lat:51.482,lon:7.217,total:15,paid:5,revenue:13600,conv:33.3},
+    {city:'Karlsruhe',lat:49.006,lon:8.404,total:16,paid:4,revenue:14500,conv:25.0},
+    {city:'Augsburg',lat:48.371,lon:10.898,total:13,paid:4,revenue:26500,conv:30.8},
+    {city:'Wien',lat:48.208,lon:16.373,total:12,paid:8,revenue:14900,conv:66.7},
+    {city:'Mannheim',lat:49.488,lon:8.468,total:12,paid:5,revenue:12000,conv:41.7},
+    {city:'Rostock',lat:54.092,lon:12.100,total:12,paid:1,revenue:21000,conv:8.3},
+    {city:'Mönchengladbach',lat:51.196,lon:6.440,total:12,paid:5,revenue:12400,conv:41.7},
+  ];
+
+  // Build Leaflet map
+  setTimeout(()=>{
+    const mapEl = document.getElementById('geoMap');
+    if(!mapEl) return;
+    mapEl.style.height='400px'; mapEl.style.minHeight='400px';
+    if(!mapEl || mapEl._leaflet_id) return;
+
+    _geoMap = L.map('geoMap', {
+      zoomControl: true,
+      scrollWheelZoom: true,
+      attributionControl: false,
+      minZoom: 4,
+      maxZoom: 18
+    }).setView([51.5, 10.8], 5);
+
+    // Default: Google satellite
+    _tileLayer = L.tileLayer(TILES.satellite.url, {
+      subdomains: TILES.satellite.sub, maxZoom:19
+    }).addTo(_geoMap);
+
+    // Add attribution manually (small)
+    L.control.attribution({prefix:''}).addTo(_geoMap);
+
+    CITY_DATA.forEach(d => {
+      const col = convColor(d.conv);
+      const radius = Math.max(12, Math.sqrt(d.revenue / 1400));
+
+      // Outer pulse ring (SVG icon)
+      const pulseHtml = `<div style="position:relative;width:${radius*2+20}px;height:${radius*2+20}px">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+          width:${radius*2+14}px;height:${radius*2+14}px;border-radius:50%;
+          border:2px solid ${col};opacity:0.5;
+          animation:pulse 2.5s ease-out infinite ${Math.random()*2}s"></div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+          width:${radius*2}px;height:${radius*2}px;border-radius:50%;
+          background:${col};opacity:0.85;border:2px solid rgba(255,255,255,0.5)"></div>
+      </div>`;
+
+      const icon = L.divIcon({
+        html: pulseHtml,
+        className: '',
+        iconSize: [radius*2+20, radius*2+20],
+        iconAnchor: [(radius+10), (radius+10)]
+      });
+
+      const marker = L.marker([d.lat, d.lon], {icon}).addTo(_geoMap);
+
+      marker.bindTooltip(
+        `<b style="font-size:13px">${d.city}</b><br>
+        Leads: <b>${d.total}</b> &nbsp;|&nbsp; Zahlungen: <b style="color:${col}">${d.paid}</b><br>
+        Konversion: <b style="color:${col}">${d.conv}%</b><br>
+        Umsatz: <b>€${d.revenue.toLocaleString('de')}</b>`,
+        {className:'map-tooltip', sticky:false, offset:[0,-8]}
+      );
+
+      marker.on('click', () => showCityPanel(d));
+    });
+
+    // Map legend control
+    const legend = L.control({position:'bottomleft'});
+    legend.onAdd = () => {
+      const div = L.DomUtil.create('div');
+      div.style.cssText = 'background:rgba(7,16,31,.88);border:1px solid rgba(61,184,255,.2);border-radius:8px;padding:8px 12px;font-size:10px;color:#a4b8d0;font-family:Inter;backdrop-filter:blur(8px)';
+      div.innerHTML = '<div style="font-family:JetBrains Mono;font-size:8px;letter-spacing:2px;color:#3db8ff;margin-bottom:5px">KONVERSION</div>' +
+        ['<span style="color:#0fd47a;font-size:12px">●</span> ≥50%',
+         '<span style="color:#3db8ff;font-size:12px">●</span> 35–50%',
+         '<span style="color:#f59e0b;font-size:12px">●</span> 20–35%',
+         '<span style="color:#ff4466;font-size:12px">●</span> &lt;20%',
+         '<hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:5px 0">',
+         '<span style="color:#a4b8d0;font-size:9px">Größe = Umsatz</span>'
+        ].map(s=>'<div style="margin-bottom:2px">'+s+'</div>').join('');
+      return div;
+    };
+    legend.addTo(_geoMap);
+    // Force redraw after fonts/layout settle
+    setTimeout(()=>{ if(_geoMap) _geoMap.invalidateSize(); }, 100);
+    setTimeout(()=>{ if(_geoMap) _geoMap.invalidateSize(); }, 400);
+    setTimeout(()=>{ if(_geoMap) _geoMap.invalidateSize(); }, 900);
+    window.addEventListener('resize',()=>{ if(_geoMap) _geoMap.invalidateSize(); });
+
+    // Click Berlin by default
+    setTimeout(()=>showCityPanel(CITY_DATA[0]), 600);
+  }, 350);
+}
+
+function updHypMarker(n, val){
+  val = +val;
+  // H1: confirmed if val >= 7 (7% threshold, actual is 19.4%)
+  // H2,H3: confirmed if val >= 12
+  const thresholds = {1:7, 2:12, 3:12};
+  const max = 25, min = 2;
+  const pct = ((val-min)/(max-min)*100).toFixed(1);
+  const el = document.getElementById('h'+n+'-mkr');
+  if(el) el.style.left = pct+'%';
+  const badge = document.getElementById('h'+n+'-badge');
+  const vEl = document.getElementById('h'+n+'-v');
+  if(vEl) vEl.textContent = val+'%';
+  if(badge){
+    const confirmed = val >= thresholds[n];
+    badge.style.color = confirmed ? 'var(--g)' : 'var(--r)';
+    badge.textContent = confirmed
+      ? (n===1 ? '✓ Statistisch bestätigt' : '✓ Bestätigt (bei Umsetzung)')
+      : '✗ Noch nicht bestätigt — A/B-Test nötig';
+  }
+}
+function initS9(){
+  mk('hypChart','bar',{
+    labels:['Baseline','Hyp. №1\n(Anruf)','Hyp. №2\n(E-Mail)','Hyp. №3\n(SMS)','Alle zusammen'],
+    datasets:[{data:[BASE_REV,4250000,4250000,4250000,4677000],backgroundColor:['rgba(107,127,163,.35)',CA,CA2,CA3,CG],borderRadius:4}]
+  },{plugins:{legend:{display:false}},scales:{x:{grid:{color:GRC}},y:{grid:{color:GRC},min:3500000,ticks:{callback:v=>fmtM(v)}}}});
+  const updHyp=()=>{
+    const h1=+document.getElementById('h1-eff').value/100,h2=+document.getElementById('h2-eff').value/100,h3=+document.getElementById('h3-eff').value/100;
+    ['h1-v','h2-v','h3-v'].forEach((id,i)=>document.getElementById(id).textContent=Math.round([h1,h2,h3][i]*100)+'%');
+    const r1=BASE_REV*(1+h1),r2=BASE_REV*(1+h2),r3=BASE_REV*(1+h3),rAll=BASE_REV*(1+h1)*(1+h2)*(1+h3);
+    document.getElementById('hyp-base').textContent=fmtM(BASE_REV);
+    document.getElementById('hyp-new').textContent=fmtM(rAll);
+    document.getElementById('hyp-delta').textContent='+'+fmtM(rAll-BASE_REV);
+    ['h1-pay','h2-pay','h3-pay'].forEach((id,i)=>{
+      const p=Math.round(BASE_B*[h1,h2,h3][i]);document.getElementById(id).textContent='+'+p+' Zahl. (+'+fmtM(p*AOV*APC)+')';
+    });
+    if(charts['hypChart']){charts['hypChart'].data.datasets[0].data=[BASE_REV,r1,r2,r3,rAll];charts['hypChart'].update();}
+  };
+  ['h1-eff','h2-eff','h3-eff'].forEach(id=>document.getElementById(id).addEventListener('input',updHyp));
+  updHyp();
+}
+
+// ── S10: PHYSICAL MARKET LIMIT ──
+const CITIES={
+  berlin:  {pop:3700000,it:37000,leads:182,clients:78,conv:42.9,rev:'€187K'},
+  muenchen:{pop:1500000,it:15000,leads:74, clients:27,conv:36.5,rev:'€73K'},
+  hamburg: {pop:1800000,it:18000,leads:62, clients:22,conv:35.5,rev:'€62K'},
+  nuernberg:{pop:520000,it:5200,leads:45,  clients:9, conv:20.0,rev:'€45K'},
+  koeln:   {pop:1100000,it:11000,leads:25, clients:9, conv:36.0,rev:'€38K'},
+};
+window.showCity=function(key){
+  const d=CITIES[key]; if(!d) return;
+  const maxPop=3700000;
+  function sw(id,w){const el=document.getElementById(id);if(el)el.style.width=w+'%';}
+  function st(id,t){const el=document.getElementById(id);if(el)el.textContent=t;}
+  sw('bar-pop',  100);
+  sw('bar-it',   Math.max(0.5, d.it/maxPop*100));
+  sw('bar-leads',Math.max(0.3, d.leads/maxPop*100));
+  sw('bar-clients',Math.max(0.2,d.clients/maxPop*100));
+  const fmt=n=>n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?Math.round(n/1000)+'K':n;
+  st('val-pop',   fmt(d.pop));
+  st('val-it',    '≈'+fmt(d.it));
+  st('val-leads', d.leads);
+  st('val-clients',d.clients);
+  st('val-cov',   (d.clients/d.pop*100).toFixed(4)+'%');
+  st('val-conv',  d.conv+'%');
+  st('val-rev',   d.rev);
+  document.querySelectorAll('.city-btn').forEach(b=>b.classList.remove('on'));
+  const btn=document.getElementById('cb-'+key);
+  if(btn)btn.classList.add('on');
+};
+function initS10(){window.showCity('berlin');}
+
+// ── DISPATCHER ──
+function initSlide(i){
+  const map={2:initS2,3:initS3,4:initS4,5:initS5,6:initS6,7:initS7,8:initS7b,11:initS8,12:initS9,14:initS10};
+  if(map[i])map[i]();
+}
+
+</script>
+</body>
+</html>
