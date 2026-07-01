@@ -63,4 +63,4 @@ Custom-built scripts automate the preprocessing pipeline for four major datasets
 | Global Customer Acquisition Cost | Global CAC | 57.00 | € |
 | Unit Economics Efficiency Ratio | LTV/CAC | 21.0 | × |
 
-> 🔗 **[View Interactive Project Presentation Website](https://serhohro.github.io/edtech-data-analysis/crm_deutsch2.html)**
+> 🔗 **[View Interactive Project Presentation Website](https://serhohro.github.io/edtech-data-analysis/)**
